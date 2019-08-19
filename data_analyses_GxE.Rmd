@@ -1,0 +1,364 @@
+---
+title: "data_analyses_GxE"
+author: "Rebecca Batstone"
+date: "`r format(Sys.Date())`"
+output: github_document
+editor_options: 
+  chunk_output_type: console
+---
+
+## Load packages
+
+```{r setup, warning=FALSE, message=FALSE}
+
+# packages
+library("tidyverse") #includes ggplot2, dplyr, readr, stringr
+library("cowplot") # paneled graphs
+library("reshape2") # dcast function
+library("lme4") # mixed effects models
+library("emmeans") # calc model-estimated means
+library("DHARMa") # residual diagnostics for glmm
+library("fitdistrplus") # probability distributions of data
+library("car") # Anova function
+```
+
+## Spreadsheets
+
+```{r import_df, warning=FALSE, message=FALSE}
+# created using "data_setup.Rmd"
+F_GH_ds <- read_csv("combined_field_GH_19Aug2019.csv")
+```
+
+## GLMs (line as fixed effect)
+
+### drop lines with insufficient data
+
+```{r drop}
+# drop lines that do not have enough replicates to calc emmeans:
+F_GH_ds_drop <- subset(F_GH_ds, ! line == "WR34")
+F_GH_ds_shoot <- subset(F_GH_ds_drop, ! line %in% c("DU17","KA24"))
+F_GH_ds_root <- subset(F_GH_ds_drop, ! line %in% c("DU17"))
+F_GH_ds_count <- subset(F_GH_ds_drop, ! line %in% c("WT39")) # for leaf, nod, flower, fruit
+F_GH_ds_nod <- subset(F_GH_ds_root, ! line %in% c("WT39"))
+F_GH_ds_surv <- F_GH_ds %>%
+  filter(line != "DU17" & env != "plot_3",
+         line != "FZ17" & env != "plot_4")
+```
+
+### glm1: shoot
+
+```{r shoot}
+# prob dist
+F_GH_ds_shoot.cc <- F_GH_ds_shoot[complete.cases(F_GH_ds_shoot[ ,c("shoot")]),]
+ggplot(data=F_GH_ds_shoot.cc, aes(x=shoot)) + geom_density() + facet_grid(env ~.) # highly right-skewed
+
+descdist(F_GH_ds_shoot.cc$shoot, discrete = FALSE)
+# normal, gamma, log normal options
+fit.gamma <- fitdist(F_GH_ds_shoot.cc$shoot, "gamma")
+fit.norm <- fitdist(F_GH_ds_shoot.cc$shoot, "norm")
+fit.lnorm <- fitdist(F_GH_ds_shoot.cc$shoot, "lnorm")
+plot(fit.gamma)
+plot(fit.norm)
+plot(fit.lnorm)
+fit.gamma$aic 
+fit.norm$aic 
+fit.lnorm$aic
+# lnorm, gamma, norm (best to worst)
+
+# model
+glm1 <- glm(shoot ~ env * line,
+             family=Gamma(link="log"),
+             data = F_GH_ds_shoot.cc)
+
+# residual diagnostics
+simOut_glm1 <- simulateResiduals(fittedModel = glm1, n = 1000)
+plot(simOut_glm1) # OK
+testDispersion(simOut_glm1) # NS
+
+# model summary
+# summary(glm1)
+ANODEV_shoot <- Anova(glm1, type = 3)
+```
+
+### glm2: survival
+
+```{r survival}
+ggplot(data=F_GH_ds_surv, aes(x=survival)) + geom_density() + facet_grid(env ~.)
+
+# prob dist
+descdist(F_GH_ds_surv$survival, discrete = TRUE)
+# normal, poisson, negative binomial options
+fit.poiss <- fitdist(F_GH_ds_surv$survival, "pois")
+fit.norm <- fitdist(F_GH_ds_surv$survival, "norm")
+fit.nbinom <- fitdist(F_GH_ds_surv$survival, "nbinom")
+plot(fit.norm)
+plot(fit.nbinom)
+plot(fit.poiss)
+fit.poiss$aic 
+fit.norm$aic 
+fit.nbinom$aic
+# norm, poisson, nbinom (best to worst)
+
+glm2 <- glm(survival ~ env * line,
+             family = binomial,
+               data = F_GH_ds_surv)
+
+## residual diagnostics
+simuOut_glm2 <- simulateResiduals(fittedModel = glm2, n = 1000)
+plot(simuOut_glm2) # OK
+testOverdispersion(simuOut_glm2) # NS
+
+## model summary
+# summary(glm2)
+ANODEV_survival <- Anova(glm2, type = 3)
+```
+
+### glm3: leaf
+
+```{r leaf}
+# prob dist
+F_GH_ds_leaf <- F_GH_ds_count[complete.cases(F_GH_ds_count[ ,c("leaf")]),]
+ggplot(data=F_GH_ds_leaf, aes(x=leaf)) + geom_density() + facet_grid(env ~.) # highly right-skewed
+
+descdist(F_GH_ds_leaf$leaf, discrete = TRUE)
+# normal, poisson, negative binomial options
+fit.poiss <- fitdist(F_GH_ds_leaf$leaf, "pois")
+fit.norm <- fitdist(F_GH_ds_leaf$leaf, "norm")
+fit.nbinom <- fitdist(F_GH_ds_leaf$leaf, "nbinom")
+plot(fit.norm)
+plot(fit.nbinom)
+plot(fit.poiss)
+fit.poiss$aic
+fit.norm$aic 
+fit.nbinom$aic 
+# nbinom, norm, poiss (best to worst)
+
+# model
+glm3 <- glm.nb(leaf ~ env * line, 
+            data = F_GH_ds_leaf)
+
+## residual diagnostics
+simOut_glm3 <- simulateResiduals(fittedModel = glm3, n = 1000)
+plot(simOut_glm3) # OK
+testOverdispersion(simOut_glm3) # NS
+
+## model summary
+# summary(glm3)
+ANODEV_leaf <- Anova(glm3, type = 3)
+```
+
+### glm4: nod
+
+```{r nod}
+# prob dist
+F_GH_ds_nod.cc <- F_GH_ds_nod[complete.cases(F_GH_ds_nod[ ,c("nod")]),]
+ggplot(data=F_GH_ds_nod.cc, aes(x=nod)) + geom_density() + facet_grid(env ~.) # highly right-skewed
+
+descdist(F_GH_ds_nod.cc$nod, discrete = TRUE)
+# normal, poisson, negative binomial options
+fit.poiss <- fitdist(F_GH_ds_nod.cc$nod, "pois")
+fit.norm <- fitdist(F_GH_ds_nod.cc$nod, "norm")
+fit.nbinom <- fitdist(F_GH_ds_nod.cc$nod, "nbinom")
+plot(fit.norm)
+plot(fit.nbinom)
+plot(fit.poiss)
+fit.poiss$aic
+fit.norm$aic 
+fit.nbinom$aic 
+# nbinom, norm, poisson (best to worst)
+
+# model
+glm4 <- glm.nb(nod ~ env * line, 
+            data = F_GH_ds_nod.cc)
+
+## residual diagnostics
+simOut_glm4 <- simulateResiduals(fittedModel = glm4, n = 1000)
+plot(simOut_glm4) # OK
+testOverdispersion(simOut_glm4) # NS
+
+## model summary
+# summary(glm4)
+ANODEV_nod <- Anova(glm4, type = 3)
+```
+
+### glm5: choice
+
+```{r choice}
+# prob dist
+F_GH_ds_choice <- F_GH_ds[complete.cases(F_GH_ds[ ,c("choice")]),]
+ggplot(data=F_GH_ds_choice, aes(x=choice)) + geom_density() + facet_grid(env ~.) # normal-ish
+
+
+descdist(F_GH_ds_choice$choice, discrete = FALSE)
+# normal, poisson, negative binomial options
+fit.unif <- fitdist(F_GH_ds_choice$choice, "unif")
+fit.norm <- fitdist(F_GH_ds_choice$choice, "norm")
+# fit.beta <- fitdist(F_GH_ds_choice$choice, "beta")
+plot(fit.norm)
+plot(fit.unif)
+#plot(fit.beta)
+fit.unif$aic 
+fit.norm$aic
+#fit.beta$aic
+# norm (best to worst)
+
+# model
+glm5 <- lm(choice ~ line, 
+             data = F_GH_ds_choice)
+
+plot(glm5)
+
+## model summary
+# summary(glm5)
+ANODEV_choice <- Anova(glm5, type = 2) # no interaction term, type 2 used
+```
+
+### glm6: pink
+
+```{r pink}
+# prob dist
+F_GH_ds_totalred <- F_GH_ds[complete.cases(F_GH_ds[ ,c("totalred")]),]
+ggplot(data=F_GH_ds_totalred, aes(x=totalred)) + geom_density() + facet_grid(env ~.) # right skewed
+
+F_GH_ds_totalred_sum <- F_GH_ds_totalred %>%
+  group_by(line) %>%
+  summarise(mean_line = mean(totalred), count = length(totalred))
+
+descdist(F_GH_ds_totalred$totalred, discrete = TRUE)
+# normal, poisson, negative binomial options
+fit.poiss <- fitdist(F_GH_ds_totalred$totalred, "pois")
+fit.norm <- fitdist(F_GH_ds_totalred$totalred, "norm")
+fit.nbinom <- fitdist(F_GH_ds_totalred$totalred, "nbinom")
+plot(fit.norm)
+plot(fit.nbinom)
+plot(fit.poiss)
+fit.poiss$aic 
+fit.norm$aic 
+fit.nbinom$aic 
+# nbinom, norm, poisson (best to worst)
+
+# model
+glm6 <- glm.nb(totalred ~ line,
+                data = subset(F_GH_ds_totalred, survival > 0))
+
+## residual diagnostics
+simOut_glm6 <- simulateResiduals(fittedModel = glm6, n = 1000)
+plot(simOut_glm6) # OK
+testDispersion(simOut_glm6) # NS
+
+# model summary
+# summary(glm6)
+ANODEV_totalred <- Anova(glm6, type = 2) # no interaction term, type 2 used
+```
+
+### glm7: flower
+
+```{r flower}
+# prob dist
+F_GH_ds_flo <- F_GH_ds_count[complete.cases(F_GH_ds_count[ ,c("flo")]),]
+ggplot(data=F_GH_ds_flo, aes(x=flo)) + geom_density() + facet_grid(env ~ .) # highly right-skewed
+
+descdist(F_GH_ds_flo$flo, discrete = TRUE)
+# normal, poisson, negative binomial options
+fit.poiss <- fitdist(F_GH_ds_flo$flo, "pois")
+fit.norm <- fitdist(F_GH_ds_flo$flo, "norm")
+fit.nbinom <- fitdist(F_GH_ds_flo$flo, "nbinom")
+plot(fit.norm)
+plot(fit.nbinom)
+plot(fit.poiss)
+fit.poiss$aic 
+fit.norm$aic 
+fit.nbinom$aic 
+# nbinom, poisson, norm (best to worst)
+
+F_GH_ds_flo_sum <- F_GH_ds_flo %>%
+  group_by(env) %>%
+  summarise(mean_flower = mean(flo))
+
+# exclude plot 4, no plants formed flowers
+F_GH_ds_flo.d <- subset(F_GH_ds_flo, ! env %in% c("GH","plot_4")) %>%
+  droplevels(.)
+
+F_GH_ds_flo.d$flo_bin <- as.numeric(F_GH_ds_flo.d$flo>0) 
+
+glm7 <- glm(flo_bin ~ env * line,
+             family= binomial,
+             data = F_GH_ds_flo.d)
+
+## residual diagnostics
+simOut_glm7 <- simulateResiduals(fittedModel = glm7, n = 1000)
+plot(simOut_glm7) # OK
+testdispersion(simOut_glm7) # NS
+
+# model summary
+summary(glm7)
+ANODEV_flo <- Anova(glm7, type = 2) # no interaction term, type 2 used
+```
+
+### glm8: fruit
+
+```{r fruit}
+# prob dist
+F_GH_ds_fru <- F_GH_ds_count[complete.cases(F_GH_ds_count[ ,c("fru")]),]
+ggplot(data=F_GH_ds, aes(x=fru)) + geom_density() + facet_grid(env ~.) # highly right-skewed
+
+descdist(F_GH_ds_fru$fru, discrete = TRUE)
+# normal, poisson, negative binomial options
+fit.poiss <- fitdist(F_GH_ds_fru$fru, "pois")
+fit.norm <- fitdist(F_GH_ds_fru$fru, "norm")
+fit.nbinom <- fitdist(F_GH_ds_fru$fru, "nbinom")
+plot(fit.norm)
+plot(fit.nbinom)
+plot(fit.poiss)
+fit.poiss$aic 
+fit.norm$aic 
+fit.nbinom$aic 
+# nbinom, norm, poisson  (best to worst)
+
+F_GH_ds_fru_sum <- F_GH_ds_fru %>%
+  group_by(env) %>%
+  summarise(mean_fruit = mean(fru))
+
+F_GH_ds_fru$fru_bin <- as.numeric(F_GH_ds_fru$fru>0) 
+F_GH_ds_fru.d <- subset(F_GH_ds_fru, ! env %in% c("GH","plot_4")) %>%
+  droplevels(.)
+
+F_GH_ds_fru.dd <- subset(F_GH_ds_fru.d, fru > 0) %>%
+  droplevels(.)
+
+glm8_nz <- glm.nb(fru ~ env * line, 
+              data = F_GH_ds_fru.dd)
+
+glm8_bin <- glm(fru_bin ~ env * line, 
+              family = binomial,   
+              data = F_GH_ds_fru.d)
+
+## residual diagnostics
+simOut_glm8_nz <- simulateResiduals(fittedModel = glm8_nz, n = 1000)
+plot(simOut_glm8_nz) # not great
+testDispersion(simOut_glm8_nz) # NS
+
+simOut_glm8_bin <- simulateResiduals(fittedModel = glm8_bin, n = 1000)
+plot(simOut_glm8_bin) # OK
+testDispersion(simOut_glm8_bin) # NS
+
+# model summaries
+# summary(glm8_nz)
+ANODEV_fru_nz <- Anova(glm8_nz, type = 2) # cannot assess type 3, aliased coeff in model
+# summary(glm8_bin)
+ANODEV_fru_bin <- Anova(glm8_bin, type = 2) # no interaction term, type 2 used
+```
+
+## Write cleaned spreadsheets to directory
+
+```{r cleaned_dfs}
+write.csv(F_GH_ds_shoot.cc, "./dataset_cleaned/shoot_cleaned.csv", row.names = FALSE)
+write.csv(F_GH_ds_surv, "./dataset_cleaned/survival_cleaned.csv", row.names = FALSE)
+write.csv(F_GH_ds_leaf, "./dataset_cleaned/leaves_cleaned.csv", row.names = FALSE)
+write.csv(F_GH_ds_nod.cc, "./dataset_cleaned/nods_cleaned.csv", row.names = FALSE)
+write.csv(F_GH_ds_choice, "./dataset_cleaned/choice_cleaned.csv", row.names = FALSE)
+write.csv(F_GH_ds_totalred, "./dataset_cleaned/red.nods_cleaned.csv", row.names = FALSE)
+write.csv(F_GH_ds_flo.d, "./dataset_cleaned/flowers_cleaned.csv", row.names = FALSE)
+write.csv(F_GH_ds_fru.d, "./dataset_cleaned/fruit_succ_cleaned.csv", row.names = FALSE)
+write.csv(F_GH_ds_fru.dd, "./dataset_cleaned/fruit_nz_cleaned.csv", row.names = FALSE)
+```

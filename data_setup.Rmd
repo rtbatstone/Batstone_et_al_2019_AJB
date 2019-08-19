@@ -12,13 +12,10 @@ editor_options:
 ```{r setup, warning=FALSE, message=FALSE}
 
 # packages
-library("tidyverse") #includes ggplot2, dplyr, readr, stringr
+library("tidyverse") # includes ggplot2, dplyr, readr, stringr
 library("cowplot") # paneled graphs
-library("reshape2") # dcast function
-library("lme4") # mixed effects models
-library("emmeans") # calc model-estimated means
-library("DHARMa") # residual diagnostics for glmm
-library("fitdistrplus") # probability distributions of data
+library("psych") # pairs.panels function, correlations of raw data
+library("Amelia") # missmap function, examine missing data
 ```
 
 ## Spreadsheets
@@ -133,6 +130,8 @@ F_GH_ds$env <- factor(F_GH_ds$env, levels = c("GH","plot_1","plot_2","plot_3","p
 
 str(F_GH_ds)
 ## 1413 obs, 1411 plants, 30 lines
+
+write.csv(F_GH_ds, "combined_field_GH_19Aug2019.csv", row.names = FALSE)
 ```
 
 ## Raw data summaries
@@ -156,7 +155,6 @@ F_GH_sum_join <- F_GH_ds_sum %>%
 ### Examine missing data
 
 ```{r missing, warning=FALSE, message=FALSE}
-library(Amelia)
 missmap(F_GH_ds, main = "Missing values vs observed")
 ```
 
@@ -209,7 +207,6 @@ plot4 <- ggplot(F_GH_ds_prop.w, aes(x=GH, y=plot_4)) +
 ### Raw data correlations
 
 ```{r raw_corr, warning=FALSE, message=FALSE}
-library(psych)
 (pairs.panels(F_GH_ds[,c(5:7,9:12,16:17)], 
              method = "pearson", # correlation method
              hist.col = "#00AFBB",

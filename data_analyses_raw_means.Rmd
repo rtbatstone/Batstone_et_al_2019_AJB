@@ -1,0 +1,203 @@
+---
+title: "data_analyses_raw_means"
+author: "Rebecca Batstone"
+date: "`r format(Sys.Date())`"
+output: github_document
+editor_options: 
+  chunk_output_type: console
+---
+
+## Load packages
+
+```{r setup, warning=FALSE, message=FALSE}
+
+# packages
+library("tidyverse") #includes ggplot2, dplyr, readr, stringr
+library("cowplot") # paneled graphs
+library("reshape2") # dcast function
+library("lme4") # mixed effects models
+library("emmeans") # calc model-estimated means
+library("DHARMa") # residual diagnostics for glmm
+library("fitdistrplus") # probability distributions of data
+library("car") # Anova function
+```
+
+## Spreadsheets
+
+```{r import_df, warning=FALSE, message=FALSE}
+# created using "data_setup.Rmd"
+shoot <- read_csv("./dataset_cleaned/shoot_cleaned.csv")
+survival <- read_csv("./dataset_cleaned/survival_cleaned.csv")
+leaves <- read_csv("./dataset_cleaned/leaves_cleaned.csv")
+nods <- read_csv("./dataset_cleaned/nods_cleaned.csv")
+choice <- read_csv("./dataset_cleaned/choice_cleaned.csv")
+red.nods <- read_csv("./dataset_cleaned/red.nods_cleaned.csv")
+flowers <- read_csv("./dataset_cleaned/flowers_cleaned.csv")
+fruit_succ <- read_csv("./dataset_cleaned/fruit_succ_cleaned.csv")
+fruit_nz <- read_csv("./dataset_cleaned/fruit_nz_cleaned.csv")
+```
+
+## Calculate raw means
+
+```{r calc_means, warning=FALSE}
+# shoot
+sum_shoot_E.raw <- shoot %>%
+  group_by(env) %>%
+  summarize(mean_shoot = mean(shoot), SE_shoot = (sd(shoot))/(sqrt(length(shoot)))) %>%
+  as.data.frame(.)
+
+sum_shoot_G.raw <- shoot %>%
+  group_by(line) %>%
+  summarize(mean_shoot = mean(shoot), SE_shoot = (sd(shoot))/(sqrt(length(shoot)))) %>%
+  as.data.frame(.)
+
+sum_shoot_GE.raw <- shoot %>%
+  group_by(env, line) %>%
+  summarize(mean_shoot = mean(shoot), SE_shoot = (sd(shoot))/(sqrt(length(shoot)))) %>%
+  as.data.frame(.)
+
+# survival
+sum_surv_E.raw <- survival %>%
+  group_by(env) %>%
+  summarize(mean_surv = mean(survival), SE_surv = (sd(survival))/(sqrt(length(survival)))) %>%
+  as.data.frame(.)
+
+sum_surv_G.raw <- survival %>%
+  group_by(line) %>%
+  summarize(mean_surv = mean(survival), SE_surv = (sd(survival))/(sqrt(length(survival)))) %>%
+  as.data.frame(.)
+
+sum_surv_GE.raw <- survival %>%
+  group_by(env, line) %>%
+  summarize(mean_surv = mean(survival), SE_surv = (sd(survival))/(sqrt(length(survival)))) %>%
+  as.data.frame(.)
+
+# leaves
+sum_leaf_E.raw <- leaves %>%
+  group_by(env) %>%
+  summarize(mean_leaf = mean(leaf), SE_leaf = (sd(leaf))/(sqrt(length(leaf)))) %>%
+  as.data.frame(.)
+
+sum_leaf_G.raw <- leaves %>%
+  group_by(line) %>%
+  summarize(mean_leaf = mean(leaf), SE_leaf = (sd(leaf))/(sqrt(length(leaf)))) %>%
+  as.data.frame(.)
+
+sum_leaf_GE.raw <- leaves %>%
+  group_by(env, line) %>%
+  summarize(mean_leaf = mean(leaf), SE_leaf = (sd(leaf))/(sqrt(length(leaf)))) %>%
+  as.data.frame(.)
+
+# nodules
+sum_nod_E.raw <- nods %>%
+  group_by(env) %>%
+  summarize(mean_nod = mean(nod), SE_nod = (sd(nod))/(sqrt(length(nod)))) %>%
+  as.data.frame(.)
+
+sum_nod_G.raw <- nods %>%
+  group_by(line) %>%
+  summarize(mean_nod = mean(nod), SE_nod = (sd(nod))/(sqrt(length(nod)))) %>%
+  as.data.frame(.)
+
+sum_nod_GE.raw <- nods %>%
+  group_by(env, line) %>%
+  summarize(mean_nod = mean(nod), SE_nod = (sd(nod))/(sqrt(length(nod)))) %>%
+  as.data.frame(.)
+
+# choice
+sum_choice_G.raw <- choice %>%
+  group_by(line) %>%
+  summarize(mean_choice = mean(choice), SE_choice = (sd(choice))/(sqrt(length(choice)))) %>%
+  as.data.frame(.)
+
+# red nodules
+sum_totalred_G.raw <- red.nods %>%
+  group_by(line) %>%
+  summarize(mean_totalred = mean(totalred), SE_totalred = (sd(totalred))/(sqrt(length(totalred)))) %>%
+  as.data.frame(.)
+
+# flowers
+sum_flo_E.raw <- flowers %>%
+  group_by(env) %>%
+  summarize(mean_flo = mean(flo), SE_flo = (sd(flo))/(sqrt(length(flo)))) %>%
+  as.data.frame(.)
+
+sum_flo_G.raw <- flowers %>%
+  group_by(line) %>%
+  summarize(mean_flo = mean(flo), SE_flo = (sd(flo))/(sqrt(length(flo)))) %>%
+  as.data.frame(.)
+
+sum_flo_GE.raw <- flowers %>%
+  group_by(env, line) %>%
+  summarize(mean_flo = mean(flo), SE_flo = (sd(flo))/(sqrt(length(flo)))) %>%
+  as.data.frame(.)
+
+# fruit success
+sum_fru_E.raw <- fruit_succ %>%
+  group_by(env) %>%
+  summarize(mean_fru = mean(fru), SE_fru = (sd(fru))/(sqrt(length(fru)))) %>%
+  as.data.frame(.)
+
+sum_fru_G.raw <- fruit_succ %>%
+  group_by(line) %>%
+  summarize(mean_fru = mean(fru), SE_fru = (sd(fru))/(sqrt(length(fru)))) %>%
+  as.data.frame(.)
+
+sum_fru_GE.raw <- fruit_succ %>%
+  group_by(env, line) %>%
+  summarize(mean_fru = mean(fru), SE_fru = (sd(fru))/(sqrt(length(fru)))) %>%
+  as.data.frame(.)
+```
+
+## Combine raw means
+
+```{r comb_means}
+## main effect of line across environments
+G_comb_raw_SE1 <- merge(y=sum_shoot_G.raw, x=sum_surv_G.raw, by = "line", all = TRUE)
+G_comb_raw_SE2 <- merge(y=G_comb_raw_SE1, x=sum_leaf_G.raw, by = "line", all = TRUE)
+G_comb_raw_SE3 <- merge(y=G_comb_raw_SE2, x=sum_nod_G.raw, by = "line", all = TRUE)
+G_comb_raw_SE4 <- merge(y=G_comb_raw_SE3, x=sum_choice_G.raw, by = "line", all = TRUE)
+G_comb_raw_SE5 <- merge(y=G_comb_raw_SE4, x=sum_totalred_G.raw, by = "line", all = TRUE)
+G_comb_raw_SE6 <- merge(y=G_comb_raw_SE5, x=sum_flo_G.raw, by = "line", all = TRUE)
+G_comb_raw_SE <- merge(y=G_comb_raw_SE6, x=sum_fru_G.raw, by = "line", all = TRUE)
+
+# drop all SE. columns
+G_comb_raw <- G_comb_raw_SE[, -grep(c("SE_"), colnames(G_comb_raw_SE))]
+names(G_comb_raw) <- c("line","fruits","flowers","red_nodules","choice",
+                       "total_nodules","leaves","survival","shoot_biomass")
+
+## effect of line within environments
+sum_shoot_GE.raw$line_env <- do.call(paste, c(sum_shoot_GE.raw[c("line","env")], sep = "-"))
+sum_surv_GE.raw$line_env <- do.call(paste, c(sum_surv_GE.raw[c("line","env")], sep = "-"))
+sum_leaf_GE.raw$line_env <- do.call(paste, c(sum_leaf_GE.raw[c("line","env")], sep = "-"))
+sum_nod_GE.raw$line_env <- do.call(paste, c(sum_nod_GE.raw[c("line","env")], sep = "-"))
+sum_flo_GE.raw$line_env <- do.call(paste, c(sum_flo_GE.raw[c("line","env")], sep = "-"))
+sum_fru_GE.raw$line_env <- do.call(paste, c(sum_fru_GE.raw[c("line","env")], sep = "-"))
+sum_choice_G.raw$env <- "GH"
+sum_choice_G.raw$line_env <- do.call(paste, c(sum_choice_G.raw[c("line","env")], sep = "-"))
+sum_totalred_G.raw$env <- "GH"
+sum_totalred_G.raw$line_env <- do.call(paste, c(sum_totalred_G.raw[c("line","env")], sep = "-"))
+
+GE_comb_raw_SE1 <- merge(y=sum_shoot_GE.raw, x=sum_surv_GE.raw, by = "line_env", all = TRUE)
+GE_comb_raw_SE2 <- merge(y=GE_comb_raw_SE1, x=sum_leaf_GE.raw, by = "line_env", all = TRUE)
+GE_comb_raw_SE3 <- merge(y=GE_comb_raw_SE2, x=sum_nod_GE.raw, by = "line_env", all = TRUE)
+GE_comb_raw_SE4 <- merge(y=GE_comb_raw_SE3, x=sum_flo_GE.raw, by = "line_env", all = TRUE)
+GE_comb_raw_SE5 <- merge(y=GE_comb_raw_SE4, x=sum_fru_GE.raw, by = "line_env", all = TRUE)
+GE_comb_raw_SE6 <- merge(y=GE_comb_raw_SE5, x=sum_choice_G.raw, by = "line_env", all = TRUE)
+GE_comb_raw_SE <- merge(y=GE_comb_raw_SE6, x=sum_totalred_G.raw, by = "line_env", all = TRUE)
+
+# drop all SE. columns
+GE_comb_raw1 <- GE_comb_raw_SE[, -grep(c("SE_"), colnames(GE_comb_raw_SE))]
+GE_comb_raw2 <- GE_comb_raw1[, -grep(c("x"), colnames(GE_comb_raw1))]
+GE_comb_raw3 <- GE_comb_raw2[, -grep(c("y"), colnames(GE_comb_raw2))]
+
+GE_comb_raw <- GE_comb_raw3 %>% 
+  separate(line_env, c('line','env'), sep = '-')
+
+names(GE_comb_raw) <- c("line","env","totalred","choice","fruit","flower",
+                       "nod","leaf","surv","shoot")
+
+## dcast for env 
+# reshape from long to wide (for each env)
+GE_comb_raw.w <- reshape(GE_comb_raw, idvar = "line", timevar = "env", direction = "wide")
+```
