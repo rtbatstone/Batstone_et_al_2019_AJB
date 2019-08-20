@@ -1,44 +1,41 @@
 data\_setup
 ================
 Rebecca Batstone
-2019-08-19
+2019-08-20
 
 Load packages
 -------------
 
 ``` r
 # packages
-library("tidyverse") #includes ggplot2, dplyr, readr, stringr
-library("cowplot") # paneled graphs
-library("reshape2") # dcast function
-library("lme4") # mixed effects models
-library("emmeans") # calc model-estimated means
-library("DHARMa") # residual diagnostics for glmm
-library("fitdistrplus") # probability distributions of data
+library("tidyverse") ## includes ggplot2, dplyr, readr, stringr
+library("cowplot") ## paneled graphs
+library("psych") ## pairs.panels function, correlations of raw data
+library("Amelia") ## missmap function, examine missing data
 ```
 
 Spreadsheets
 ------------
 
 ``` r
-########### DS1
 # From Anna's greehouse experiment
 greenhouse <- read_csv("SimonsenStinchcombe_Proc.Roy.Soc.B_2014_rawdata_pluslinename.csv")
 
-### DS1 set variable types:
+# set variable types:
 greenhouse$line <- greenhouse$family
 greenhouse$line <- as.factor(greenhouse$line)
+greenhouse$population <- as.factor(greenhouse$population)
 
 # calc proportion white
 greenhouse$prop_white <- (greenhouse$totalwhite)/(greenhouse$totalnod)
 greenhouse$choice <- 1 - greenhouse$prop_white
 
 # subset to only lines in my dataset
-greenhouse_s30 <- subset(greenhouse, 
-                         line %in% c('AC3','AC15','AC20','DE7','DE15','DU4','DU17','FOR15','FOR26','FOR43','F217',"F219",
-                                      "F224", "HTD2", "HTD28", "HTR1", "HTR25", "HTR30", "KA7", "KA16", "KA24", "RBE17",                                         "RBE34","RBE38","WR31","WR34","WR40a","WT18","WT30","WT39"))
-greenhouse_s30 <- droplevels(greenhouse_s30)
-
+greenhouse_s30 <- greenhouse %>%
+  filter(line %in% c('AC3','AC15','AC20','DE7','DE15','DU4','DU17','FOR15','FOR26','FOR43','F217',"F219",
+                                      "F224", "HTD2", "HTD28", "HTR1", "HTR25", "HTR30", "KA7", "KA16", "KA24", "RBE17",                                         "RBE34","RBE38","WR31","WR34","WR40a","WT18","WT30","WT39")) %>%
+  droplevels(.)
+                         
 # subset to the mixed treatment only
 GH_mix <- subset(greenhouse_s30, treatment == "Mix")
 GH_mix <- droplevels(GH_mix)
@@ -58,7 +55,7 @@ str(GH_mix)
     ##  $ treatment                   : chr  "Mix" "Mix" "Mix" "Mix" ...
     ##  $ block                       : num  7 7 7 3 3 4 7 1 4 4 ...
     ##  $ family                      : chr  "WR40a" "WR40a" "FOR43" "F219" ...
-    ##  $ population                  : chr  "WR" "WR" "FOR" "F2" ...
+    ##  $ population                  : Factor w/ 11 levels "AC","DE","DU",..: 10 10 5 4 1 9 5 2 5 4 ...
     ##  $ uline                       : num  102 102 42 27 11 85 38 17 38 29 ...
     ##  $ dateplanted                 : chr  "20-Oct-11" "20-Oct-11" "20-Oct-11" "18-Oct-11" ...
     ##  $ shoot                       : num  3.31 3.69 3.51 5.13 5.34 ...
@@ -83,9 +80,9 @@ str(GH_mix)
 ``` r
 ## 282 obs., 280 plants, 30 lines
 
-###### field dataset
+# Field dataset
 
-# after updating merged spreadsheet
+# after updating merged spreadsheet:
 field <- read_csv("field_combined_21March2019.csv", 
     col_types = cols(batch = col_factor(levels = c("one", 
         "two")), no = col_character(), plot = col_factor(levels = c("plot_1", 
@@ -154,20 +151,19 @@ str(field)
 ### Combine Anna's raw data (N = 282 plants) with mine
 
 ``` r
-### df with: line, include column (env), 4 traits (nod, shoot, leaf, survival), researcher (include Anna)
+# df with: line, include column (env), 4 traits (nod, shoot, leaf, survival), researcher (include Anna)
 
-# 1) change F2 to FZ to match my df
+# change F2 to FZ to match my df
+levels(GH_mix$line)[levels(GH_mix$line)=="F217"] <- "FZ17"
+levels(GH_mix$line)[levels(GH_mix$line)=="F219"] <- "FZ19"
+levels(GH_mix$line)[levels(GH_mix$line)=="F224"] <- "FZ24"
+levels(GH_mix$population)[levels(GH_mix$population)=="F2"] <- "FZ"
 
-GH_mix$line <- recode(GH_mix$line, "F217"="FZ17", "F219"="FZ19", "F224"="FZ24")
-GH_mix$population <- recode(GH_mix$population, "F2"="FZ")
-
-# 2) select columns that match my df
-
+# select columns that match my df
 GH_mix.sub <- GH_mix[ , c("tray", "block", "line","population","survival","leaf_atharvest","totalnod","plant_ID",
                           "shoot","root","choice","totalred")]
 
-# 3) include column for env and diss
-
+# include column for env and diss
 GH_mix.sub$env <- "GH"
 GH_mix.sub$dataset <- "ESC-greenhouse"
 GH_mix.sub$diss <- "Simonsen"
@@ -175,7 +171,6 @@ GH_mix.sub$flo <- NA
 GH_mix.sub$fru <- NA
 
 # select columns from my df that match
-
 field.sub <- field[ , c("loc", "batch", "line","pop","shoot_BM","root_BM","survive","leaf","nod","plant_ID",
                         "plot","diss","flo","fru")]
 
@@ -211,6 +206,7 @@ F_GH_ds <- rbind(GH_mix.sub, field.sub)
 # change env to factor
 F_GH_ds$env <- factor(F_GH_ds$env, levels = c("GH","plot_1","plot_2","plot_3","plot_4"))
 
+F_GH_ds <- droplevels(F_GH_ds)
 str(F_GH_ds)
 ```
 
@@ -218,7 +214,7 @@ str(F_GH_ds)
     ##  $ position: chr  "80" "80" "79" "25" ...
     ##  $ block   : chr  "7" "7" "7" "3" ...
     ##  $ line    : Factor w/ 30 levels "AC15","AC20",..: 27 27 13 9 2 23 12 4 12 10 ...
-    ##  $ pop     : chr  "WR" "WR" "FOR" "FZ" ...
+    ##  $ pop     : Factor w/ 11 levels "AC","DE","DU",..: 10 10 5 4 1 9 5 2 5 4 ...
     ##  $ survival: num  0 0 0 0 0 0 0 0 0 0 ...
     ##  $ leaf    : num  1 1 2 3 2 4 2 3 3 3 ...
     ##  $ nod     : num  3 3 6 9 2 2 5 3 3 0 ...
@@ -241,7 +237,7 @@ Raw data summaries
 ------------------
 
 ``` r
-sapply(F_GH_ds,function(x) sum(is.na(x)))
+sapply(F_GH_ds, function(x) sum(is.na(x)))
 ```
 
     ## position    block     line      pop survival     leaf      nod plant_ID 
@@ -276,24 +272,6 @@ F_GH_sum_join <- F_GH_ds_sum %>%
 ```
 
     ## Joining, by = c("env", "line")
-
-### Examine missing data
-
-``` r
-library(Amelia)
-missmap(F_GH_ds, main = "Missing values vs observed")
-```
-
-![](data_setup_files/figure-markdown_github/missing-1.png)
-
-Traits without sufficient replication:
-
--   fruit and flower only measured in field
--   choice and number of red nodules only measured in GH
--   shoot, root not available for DU17 (plot3)
--   shoot not available for KA24 (plot4)
--   no traits available for WR34 (plot4), none survived
--   leaf, nod, flower, fruit not available for WT39 (plot4)
 
 ### Examine proportion of surviving plants btw GH and field plots
 
@@ -337,7 +315,6 @@ plot4 <- ggplot(F_GH_ds_prop.w, aes(x=GH, y=plot_4)) +
 ### Raw data correlations
 
 ``` r
-library(psych)
 (pairs.panels(F_GH_ds[,c(5:7,9:12,16:17)], 
              method = "pearson", # correlation method
              hist.col = "#00AFBB",
@@ -349,3 +326,82 @@ library(psych)
 ![](data_setup_files/figure-markdown_github/raw_corr-1.png)
 
     ## NULL
+
+### Examine missing data
+
+``` r
+missmap(F_GH_ds, main = "Missing values vs observed")
+```
+
+![](data_setup_files/figure-markdown_github/missing-1.png)
+
+Traits without sufficient replication:
+
+-   flower and fruit: only measured in field, not enough reps for plot 4 and line WT39
+-   choice and number of red nodules: only measured in GH
+-   shoot: not available for DU17 (plot3) and KA24 (plot4)
+-   leaf, nod: not available for WT39 (plot4)
+-   No traits available for WR34 (plot4), none survived
+
+### Clean up dataset for each trait to analyze
+
+``` r
+# drop lines that do not have enough replicates across each env to calc interaction terms:
+drop_WR34 <- F_GH_ds %>%
+  filter(! line %in% "WR34") %>%
+  droplevels(.)
+
+shoot_df <- drop_WR34 %>%
+  filter(! line %in% c("DU17","KA24")) %>%
+  droplevels(.)
+
+leaf_df <- drop_WR34 %>%
+  filter(! line %in% c("WT39")) %>%
+  droplevels(.)
+
+nod_df <- drop_WR34 %>%
+  filter(! line %in% c("WT39")) %>%
+  droplevels(.)
+
+choice_df <- F_GH_ds %>%
+  filter(! dataset %in% c("KSR-field")) %>%
+  droplevels(.)
+
+red_nod_df <- F_GH_ds %>%
+  filter(! dataset %in% c("KSR-field")) %>%
+  droplevels(.)
+
+flower_df <- drop_WR34 %>%
+  filter(! line %in% c("WT39") & ! env %in% c("GH","plot_4")) %>%
+  droplevels(.)
+
+fruit_df <- drop_WR34 %>%
+  filter(! line %in% c("WT39") & ! env %in% c("GH","plot_4")) %>%
+  droplevels(.)
+
+# complete cases for each trait:
+shoot_cc <- shoot_df[complete.cases(shoot_df[ ,c("shoot")]),]
+survival_cc <- F_GH_ds[complete.cases(F_GH_ds[ ,c("survival")]),]
+leaf_cc <- leaf_df[complete.cases(leaf_df[ ,c("leaf")]),]
+nod_cc <- nod_df[complete.cases(nod_df[ ,c("nod")]),]
+choice_cc <- choice_df[complete.cases(choice_df[ ,c("choice")]),]
+red_nod_cc <- red_nod_df[complete.cases(red_nod_df[ ,c("totalred")]),]
+flower_cc <- flower_df[complete.cases(flower_df[ ,c("flo")]),]
+fruit_cc <- fruit_df[complete.cases(fruit_df[ ,c("fru")]),]
+```
+
+Save files for downstream analyses
+----------------------------------
+
+``` r
+date <- format(Sys.Date())
+save(F_GH_ds, file = paste0("combined_field_GH_", date, ".Rdata"))
+save(shoot_cc, file = "./dataset_cleaned/shoot_cleaned.Rdata")
+save(survival_cc, file="./dataset_cleaned/survival_cleaned.Rdata")
+save(leaf_cc, file="./dataset_cleaned/leaves_cleaned.Rdata")
+save(nod_cc, file="./dataset_cleaned/nods_cleaned.Rdata")
+save(choice_cc, file="./dataset_cleaned/choice_cleaned.Rdata")
+save(red_nod_cc, file="./dataset_cleaned/red_nod_cleaned.Rdata")
+save(flower_cc, file="./dataset_cleaned/flowers_cleaned.Rdata")
+save(fruit_cc, file="./dataset_cleaned/fruits_cleaned.Rdata")
+```
