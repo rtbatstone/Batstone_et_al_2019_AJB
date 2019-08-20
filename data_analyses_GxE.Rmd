@@ -40,9 +40,6 @@ F_GH_ds_shoot <- subset(F_GH_ds_drop, ! line %in% c("DU17","KA24"))
 F_GH_ds_root <- subset(F_GH_ds_drop, ! line %in% c("DU17"))
 F_GH_ds_count <- subset(F_GH_ds_drop, ! line %in% c("WT39")) # for leaf, nod, flower, fruit
 F_GH_ds_nod <- subset(F_GH_ds_root, ! line %in% c("WT39"))
-F_GH_ds_surv <- F_GH_ds %>%
-  filter(line != "DU17" & env != "plot_3",
-         line != "FZ17" & env != "plot_4")
 ```
 
 ### glm1: shoot
@@ -77,20 +74,20 @@ testDispersion(simOut_glm1) # NS
 
 # model summary
 # summary(glm1)
-ANODEV_shoot <- Anova(glm1, type = 3)
+(ANODEV_shoot <- Anova(glm1, type = 2)) # cannot assess type 3, aliased coeff in model
 ```
 
 ### glm2: survival
 
 ```{r survival}
-ggplot(data=F_GH_ds_surv, aes(x=survival)) + geom_density() + facet_grid(env ~.)
+ggplot(data=F_GH_ds, aes(x=survival)) + geom_density() + facet_grid(env ~.)
 
 # prob dist
-descdist(F_GH_ds_surv$survival, discrete = TRUE)
+descdist(F_GH_ds$survival, discrete = TRUE)
 # normal, poisson, negative binomial options
-fit.poiss <- fitdist(F_GH_ds_surv$survival, "pois")
-fit.norm <- fitdist(F_GH_ds_surv$survival, "norm")
-fit.nbinom <- fitdist(F_GH_ds_surv$survival, "nbinom")
+fit.poiss <- fitdist(F_GH_ds$survival, "pois")
+fit.norm <- fitdist(F_GH_ds$survival, "norm")
+fit.nbinom <- fitdist(F_GH_ds$survival, "nbinom")
 plot(fit.norm)
 plot(fit.nbinom)
 plot(fit.poiss)
@@ -101,16 +98,16 @@ fit.nbinom$aic
 
 glm2 <- glm(survival ~ env * line,
              family = binomial,
-               data = F_GH_ds_surv)
+               data = F_GH_ds)
 
 ## residual diagnostics
 simuOut_glm2 <- simulateResiduals(fittedModel = glm2, n = 1000)
 plot(simuOut_glm2) # OK
-testOverdispersion(simuOut_glm2) # NS
+testDispersion(simuOut_glm2) # NS
 
 ## model summary
 # summary(glm2)
-ANODEV_survival <- Anova(glm2, type = 3)
+(ANODEV_survival <- Anova(glm2, type = 2)) # cannot assess type 3, aliased coeff in model
 ```
 
 ### glm3: leaf
@@ -140,11 +137,11 @@ glm3 <- glm.nb(leaf ~ env * line,
 ## residual diagnostics
 simOut_glm3 <- simulateResiduals(fittedModel = glm3, n = 1000)
 plot(simOut_glm3) # OK
-testOverdispersion(simOut_glm3) # NS
+testDispersion(simOut_glm3) # NS
 
 ## model summary
 # summary(glm3)
-ANODEV_leaf <- Anova(glm3, type = 3)
+(ANODEV_leaf <- Anova(glm3, type = 2)) # cannot assess type 3, aliased coeff in model
 ```
 
 ### glm4: nod
@@ -174,11 +171,11 @@ glm4 <- glm.nb(nod ~ env * line,
 ## residual diagnostics
 simOut_glm4 <- simulateResiduals(fittedModel = glm4, n = 1000)
 plot(simOut_glm4) # OK
-testOverdispersion(simOut_glm4) # NS
+testDispersion(simOut_glm4) # NS
 
 ## model summary
 # summary(glm4)
-ANODEV_nod <- Anova(glm4, type = 3)
+(ANODEV_nod <- Anova(glm4, type = 2)) # cannot assess type 3, aliased coeff in model
 ```
 
 ### glm5: choice
@@ -210,7 +207,7 @@ plot(glm5)
 
 ## model summary
 # summary(glm5)
-ANODEV_choice <- Anova(glm5, type = 2) # no interaction term, type 2 used
+(ANODEV_choice <- Anova(glm5, type = 2)) # no interaction term, type 2 used
 ```
 
 ### glm6: pink
@@ -248,7 +245,7 @@ testDispersion(simOut_glm6) # NS
 
 # model summary
 # summary(glm6)
-ANODEV_totalred <- Anova(glm6, type = 2) # no interaction term, type 2 used
+(ANODEV_totalred <- Anova(glm6, type = 2)) # no interaction term, type 2 used
 ```
 
 ### glm7: flower
@@ -288,11 +285,11 @@ glm7 <- glm(flo_bin ~ env * line,
 ## residual diagnostics
 simOut_glm7 <- simulateResiduals(fittedModel = glm7, n = 1000)
 plot(simOut_glm7) # OK
-testdispersion(simOut_glm7) # NS
+testDispersion(simOut_glm7) # NS
 
 # model summary
-summary(glm7)
-ANODEV_flo <- Anova(glm7, type = 2) # no interaction term, type 2 used
+# summary(glm7)
+(ANODEV_flo <- Anova(glm7, type = 2)) # NS interaction term, type 2 used
 ```
 
 ### glm8: fruit
@@ -344,16 +341,16 @@ testDispersion(simOut_glm8_bin) # NS
 
 # model summaries
 # summary(glm8_nz)
-ANODEV_fru_nz <- Anova(glm8_nz, type = 2) # cannot assess type 3, aliased coeff in model
+(ANODEV_fru_nz <- Anova(glm8_nz, type = 2)) # cannot assess type 3, aliased coeff in model
 # summary(glm8_bin)
-ANODEV_fru_bin <- Anova(glm8_bin, type = 2) # no interaction term, type 2 used
+(ANODEV_fru_bin <- Anova(glm8_bin, type = 2)) # NS interaction term, type 2 used
 ```
 
 ## Write cleaned spreadsheets to directory
 
 ```{r cleaned_dfs}
 write.csv(F_GH_ds_shoot.cc, "./dataset_cleaned/shoot_cleaned.csv", row.names = FALSE)
-write.csv(F_GH_ds_surv, "./dataset_cleaned/survival_cleaned.csv", row.names = FALSE)
+write.csv(F_GH_ds, "./dataset_cleaned/survival_cleaned.csv", row.names = FALSE)
 write.csv(F_GH_ds_leaf, "./dataset_cleaned/leaves_cleaned.csv", row.names = FALSE)
 write.csv(F_GH_ds_nod.cc, "./dataset_cleaned/nods_cleaned.csv", row.names = FALSE)
 write.csv(F_GH_ds_choice, "./dataset_cleaned/choice_cleaned.csv", row.names = FALSE)

@@ -1,16 +1,12 @@
----
-title: "data_analyses_raw_means"
-author: "Rebecca Batstone"
-date: "`r format(Sys.Date())`"
-output: github_document
-editor_options: 
-  chunk_output_type: console
----
+data\_analyses\_raw\_means
+================
+Rebecca Batstone
+2019-08-19
 
-## Load packages
+Load packages
+-------------
 
-```{r setup, warning=FALSE, message=FALSE}
-
+``` r
 # packages
 library("tidyverse") #includes ggplot2, dplyr, readr, stringr
 library("cowplot") # paneled graphs
@@ -22,9 +18,10 @@ library("fitdistrplus") # probability distributions of data
 library("car") # Anova function
 ```
 
-## Spreadsheets
+Spreadsheets
+------------
 
-```{r import_df, warning=FALSE, message=FALSE}
+``` r
 # created using "data_setup.Rmd"
 F_GH_ds <- read_csv("combined_field_GH_19Aug2019.csv")
 
@@ -40,9 +37,10 @@ fruit_succ <- read_csv("./dataset_cleaned/fruit_succ_cleaned.csv")
 fruit_nz <- read_csv("./dataset_cleaned/fruit_nz_cleaned.csv")
 ```
 
-## Calculate raw means
+Calculate raw means
+-------------------
 
-```{r calc_means, warning=FALSE}
+``` r
 # shoot
 sum_shoot_E.raw <- shoot %>%
   group_by(env) %>%
@@ -152,9 +150,10 @@ sum_fru_GE.raw <- fruit_succ %>%
   as.data.frame(.)
 ```
 
-## Combine raw means
+Combine raw means
+-----------------
 
-```{r comb_means, warning=FALSE}
+``` r
 ## main effect of line across environments
 G_comb_raw_SE1 <- merge(y=sum_shoot_G.raw, x=sum_surv_G.raw, by = "line", all = TRUE)
 G_comb_raw_SE2 <- merge(y=G_comb_raw_SE1, x=sum_leaf_G.raw, by = "line", all = TRUE)
@@ -205,9 +204,10 @@ names(GE_comb_raw) <- c("line","env","totalred","choice","fruit","flower",
 GE_comb_raw.w <- reshape(GE_comb_raw, idvar = "line", timevar = "env", direction = "wide")
 ```
 
-## Reaction norm plots (same traits across env)
+Reaction norm plots (same traits across env)
+--------------------------------------------
 
-```{r rxn_norms, warning=FALSE}
+``` r
 plot_colours <- c('green4','firebrick3', 'darkblue','darkorchid', 'darkgoldenrod')
 names(plot_colours) <- levels(F_GH_ds$env)
 colScale3 <- scale_fill_manual(name = "Environment", 
@@ -254,7 +254,11 @@ env_labeller <- function(variable,value){
         legend.text = element_text(colour="black", size=12),
         panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank()))
+```
 
+![](data_analyses_raw_means_files/figure-markdown_github/rxn_norms-1.png)
+
+``` r
 # surv
 (plot.sum_surv <- ggplot(GE_comb_raw, aes(x=env, y=surv, group=line)) + 
   geom_point(size=3, position = position_dodge(0.3)) + 
@@ -279,7 +283,11 @@ env_labeller <- function(variable,value){
         legend.text = element_text(colour="black", size=12),
         panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank()))
+```
 
+![](data_analyses_raw_means_files/figure-markdown_github/rxn_norms-2.png)
+
+``` r
 # leaf
 (plot.sum_leaf <- ggplot(GE_comb_raw, aes(x=env, y=leaf, 
                                       group=line)) + 
@@ -308,7 +316,11 @@ env_labeller <- function(variable,value){
         legend.text = element_text(colour="black", size=12),
         panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank()))
+```
 
+![](data_analyses_raw_means_files/figure-markdown_github/rxn_norms-3.png)
+
+``` r
 # nodules
 (plot.sum_nod <- ggplot(GE_comb_raw, aes(x=env, y=nod, 
                                       group=line)) + 
@@ -337,7 +349,11 @@ env_labeller <- function(variable,value){
         legend.text = element_text(colour="black", size=12),
         panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank()))
+```
 
+![](data_analyses_raw_means_files/figure-markdown_github/rxn_norms-4.png)
+
+``` r
 # rxn norm plot for field and GH-only data
 
 # label for x-axis
@@ -376,7 +392,11 @@ plot_label3 <- function(variable,value){
         legend.text = element_text(colour="black", size=12),
         panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank()))
+```
 
+![](data_analyses_raw_means_files/figure-markdown_github/rxn_norms-5.png)
+
+``` r
 # flowers
 (plot.sum_flo <- ggplot(subset(GE_comb_raw, ! env %in% c("GH","plot_4")), aes(x=env, y=flower, 
                                       group=line)) + 
@@ -401,7 +421,11 @@ plot_label3 <- function(variable,value){
         legend.text = element_text(colour="black", size=12),
         panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank()))
+```
 
+![](data_analyses_raw_means_files/figure-markdown_github/rxn_norms-6.png)
+
+``` r
 # cowplots
 
 # put all four plots into one
