@@ -1,7 +1,7 @@
 data\_analyses\_raw\_means
 ================
 Rebecca Batstone
-2019-08-19
+2019-08-20
 
 Load packages
 -------------
@@ -11,11 +11,6 @@ Load packages
 library("tidyverse") #includes ggplot2, dplyr, readr, stringr
 library("cowplot") # paneled graphs
 library("reshape2") # dcast function
-library("lme4") # mixed effects models
-library("emmeans") # calc model-estimated means
-library("DHARMa") # residual diagnostics for glmm
-library("fitdistrplus") # probability distributions of data
-library("car") # Anova function
 ```
 
 Spreadsheets
@@ -23,18 +18,16 @@ Spreadsheets
 
 ``` r
 # created using "data_setup.Rmd"
-F_GH_ds <- read_csv("combined_field_GH_19Aug2019.csv")
-
-# created using "data_analyses_GxE.Rmd"
-shoot <- read_csv("./dataset_cleaned/shoot_cleaned.csv")
-survival <- read_csv("./dataset_cleaned/survival_cleaned.csv")
-leaves <- read_csv("./dataset_cleaned/leaves_cleaned.csv")
-nods <- read_csv("./dataset_cleaned/nods_cleaned.csv")
-choice <- read_csv("./dataset_cleaned/choice_cleaned.csv")
-red.nods <- read_csv("./dataset_cleaned/red.nods_cleaned.csv")
-flowers <- read_csv("./dataset_cleaned/flowers_cleaned.csv")
-fruit_succ <- read_csv("./dataset_cleaned/fruit_succ_cleaned.csv")
-fruit_nz <- read_csv("./dataset_cleaned/fruit_nz_cleaned.csv")
+date <- format(Sys.Date())
+load(paste0("combined_field_GH_", date, ".Rdata"))
+load("./dataset_cleaned/shoot_cleaned.Rdata")
+load("./dataset_cleaned/survival_cleaned.Rdata")
+load("./dataset_cleaned/leaves_cleaned.Rdata")
+load("./dataset_cleaned/nods_cleaned.Rdata")
+load("./dataset_cleaned/choice_cleaned.Rdata")
+load("./dataset_cleaned/red_nod_cleaned.Rdata")
+load("./dataset_cleaned/flowers_cleaned.Rdata")
+load("./dataset_cleaned/fruits_cleaned.Rdata")
 ```
 
 Calculate raw means
@@ -42,109 +35,109 @@ Calculate raw means
 
 ``` r
 # shoot
-sum_shoot_E.raw <- shoot %>%
+sum_shoot_E.raw <- shoot_cc %>%
   group_by(env) %>%
   summarize(mean_shoot = mean(shoot), SE_shoot = (sd(shoot))/(sqrt(length(shoot)))) %>%
   as.data.frame(.)
 
-sum_shoot_G.raw <- shoot %>%
+sum_shoot_G.raw <- shoot_cc %>%
   group_by(line) %>%
   summarize(mean_shoot = mean(shoot), SE_shoot = (sd(shoot))/(sqrt(length(shoot)))) %>%
   as.data.frame(.)
 
-sum_shoot_GE.raw <- shoot %>%
+sum_shoot_GE.raw <- shoot_cc %>%
   group_by(env, line) %>%
   summarize(mean_shoot = mean(shoot), SE_shoot = (sd(shoot))/(sqrt(length(shoot)))) %>%
   as.data.frame(.)
 
 # survival
-sum_surv_E.raw <- survival %>%
+sum_surv_E.raw <- survival_cc %>%
   group_by(env) %>%
   summarize(mean_surv = mean(survival), SE_surv = (sd(survival))/(sqrt(length(survival)))) %>%
   as.data.frame(.)
 
-sum_surv_G.raw <- survival %>%
+sum_surv_G.raw <- survival_cc %>%
   group_by(line) %>%
   summarize(mean_surv = mean(survival), SE_surv = (sd(survival))/(sqrt(length(survival)))) %>%
   as.data.frame(.)
 
-sum_surv_GE.raw <- survival %>%
+sum_surv_GE.raw <- survival_cc %>%
   group_by(env, line) %>%
   summarize(mean_surv = mean(survival), SE_surv = (sd(survival))/(sqrt(length(survival)))) %>%
   as.data.frame(.)
 
 # leaves
-sum_leaf_E.raw <- leaves %>%
+sum_leaf_E.raw <- leaf_cc %>%
   group_by(env) %>%
   summarize(mean_leaf = mean(leaf), SE_leaf = (sd(leaf))/(sqrt(length(leaf)))) %>%
   as.data.frame(.)
 
-sum_leaf_G.raw <- leaves %>%
+sum_leaf_G.raw <- leaf_cc %>%
   group_by(line) %>%
   summarize(mean_leaf = mean(leaf), SE_leaf = (sd(leaf))/(sqrt(length(leaf)))) %>%
   as.data.frame(.)
 
-sum_leaf_GE.raw <- leaves %>%
+sum_leaf_GE.raw <- leaf_cc %>%
   group_by(env, line) %>%
   summarize(mean_leaf = mean(leaf), SE_leaf = (sd(leaf))/(sqrt(length(leaf)))) %>%
   as.data.frame(.)
 
 # nodules
-sum_nod_E.raw <- nods %>%
+sum_nod_E.raw <- nod_cc %>%
   group_by(env) %>%
   summarize(mean_nod = mean(nod), SE_nod = (sd(nod))/(sqrt(length(nod)))) %>%
   as.data.frame(.)
 
-sum_nod_G.raw <- nods %>%
+sum_nod_G.raw <- nod_cc %>%
   group_by(line) %>%
   summarize(mean_nod = mean(nod), SE_nod = (sd(nod))/(sqrt(length(nod)))) %>%
   as.data.frame(.)
 
-sum_nod_GE.raw <- nods %>%
+sum_nod_GE.raw <- nod_cc %>%
   group_by(env, line) %>%
   summarize(mean_nod = mean(nod), SE_nod = (sd(nod))/(sqrt(length(nod)))) %>%
   as.data.frame(.)
 
 # choice
-sum_choice_G.raw <- choice %>%
+sum_choice_G.raw <- choice_cc %>%
   group_by(line) %>%
   summarize(mean_choice = mean(choice), SE_choice = (sd(choice))/(sqrt(length(choice)))) %>%
   as.data.frame(.)
 
 # red nodules
-sum_totalred_G.raw <- red.nods %>%
+sum_totalred_G.raw <- red_nod_cc %>%
   group_by(line) %>%
   summarize(mean_totalred = mean(totalred), SE_totalred = (sd(totalred))/(sqrt(length(totalred)))) %>%
   as.data.frame(.)
 
 # flowers
-sum_flo_E.raw <- flowers %>%
+sum_flo_E.raw <- flower_cc %>%
   group_by(env) %>%
   summarize(mean_flo = mean(flo), SE_flo = (sd(flo))/(sqrt(length(flo)))) %>%
   as.data.frame(.)
 
-sum_flo_G.raw <- flowers %>%
+sum_flo_G.raw <- flower_cc %>%
   group_by(line) %>%
   summarize(mean_flo = mean(flo), SE_flo = (sd(flo))/(sqrt(length(flo)))) %>%
   as.data.frame(.)
 
-sum_flo_GE.raw <- flowers %>%
+sum_flo_GE.raw <- flower_cc %>%
   group_by(env, line) %>%
   summarize(mean_flo = mean(flo), SE_flo = (sd(flo))/(sqrt(length(flo)))) %>%
   as.data.frame(.)
 
 # fruit success
-sum_fru_E.raw <- fruit_succ %>%
+sum_fru_E.raw <- fruit_cc %>%
   group_by(env) %>%
   summarize(mean_fru = mean(fru), SE_fru = (sd(fru))/(sqrt(length(fru)))) %>%
   as.data.frame(.)
 
-sum_fru_G.raw <- fruit_succ %>%
+sum_fru_G.raw <- fruit_cc %>%
   group_by(line) %>%
   summarize(mean_fru = mean(fru), SE_fru = (sd(fru))/(sqrt(length(fru)))) %>%
   as.data.frame(.)
 
-sum_fru_GE.raw <- fruit_succ %>%
+sum_fru_GE.raw <- fruit_cc %>%
   group_by(env, line) %>%
   summarize(mean_fru = mean(fru), SE_fru = (sd(fru))/(sqrt(length(fru)))) %>%
   as.data.frame(.)
