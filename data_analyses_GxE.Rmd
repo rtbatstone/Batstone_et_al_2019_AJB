@@ -20,6 +20,8 @@ library("emmeans") ## calc model-estimated means
 library("DHARMa") ## residual diagnostics for glmm
 library("fitdistrplus") ## probability distributions of data
 library("car") ## Anova function
+library("logistf") ## firth correction (binomial responses)
+library("brglm2") ## check separation issue 
 ```
 
 ## Spreadsheets
@@ -48,6 +50,12 @@ options(contrasts = rep ("contr.sum", 2))
 
 ### glm1: shoot
 
+Summary:
+
+- both models perform well, residual diagnostics hold up
+- lm type III SS can be calculated, but interaction is not significant.
+- glm type III SS cannot be calculated using Anova function, but joint_tests indicates all terms sig. 
+
 ```{r shoot}
 # prob dist
 ggplot(data=shoot_cc, aes(x=shoot)) + geom_density() + facet_grid(env ~.) ## highly right-skewed
@@ -66,25 +74,36 @@ fit.lnorm$aic
 ## lnorm, gamma, norm (best to worst)
 
 # model
+
+lm1 <- lm(log(shoot) ~ env * line,
+            data = shoot_cc)
+
 glm1 <- glm(shoot ~ env * line,
             family = Gamma(link="log"),
             data = shoot_cc)
 
 # residual diagnostics
+plot(lm1) ## OK
+
 simuOut_glm1 <- simulateResiduals(fittedModel = glm1, n = 1000)
 plot(simuOut_glm1) ## OK
 testDispersion(simuOut_glm1) ## NS
 
 # model summary
-summary(glm1)
-(ANODEV_shoot <- Anova(glm1, type = 2)) ## error if type 3 used, see message below:
-# Error in glm.fit(x[, jj, drop = FALSE], y, wt, offset = object$offset,  :
-#   NA/NaN/Inf in 'x'
-# In addition: Warning message:
-# step size truncated due to divergence
+(ANODEV_lm_shoot <- Anova(lm1, type = 2)) ## NS interaction, type 2 used
+(joint_tests(lm1)) # matches Anova results
+(ANODEV_shoot <- Anova(glm1, type = 2)) ## error if type 3, type 2 used
+(joint_tests(glm1)) ## all terms sig. 
 ```
 
 ### glm2: survival
+
+Summary:
+
+- residual diagnostics hold up
+- type III SS can be calculated using Anova, but warning about fitted probabilities issued
+- checked separation in model, and uncovered Inf's
+- used Firth's correction to deal with separation, and detected sig. ME's of line and env, but no interaction
 
 ```{r survival}
 ggplot(data=survival_cc, aes(x=survival)) + geom_density() + facet_grid(env ~.) 
@@ -114,11 +133,38 @@ plot(simuOut_glm2) ## OK
 testDispersion(simuOut_glm2) ## NS
 
 # model summary
-summary(glm2)
-(ANODEV_survival <- Anova(glm2, type = 3)) 
+(ANODEV_survival <- Anova(glm2, type = 3)) ## interaction sig., fitted probability warning issued
+(joint_tests(glm2)) ## does not match Anova function results
+
+# Check separation issue
+(glm2_check <- glm(survival ~ env * line,
+             family = binomial,
+               data = survival_cc,
+            method = "detect_separation")) ## Inf detected
+
+# firth correction
+glm_firth <- logistf(survival ~ env * line, data = survival_cc)
+
+glm_firth2 <- logistf(survival ~ env + line, data = survival_cc)
+
+glm_firth3 <- logistf(survival ~ env, data = survival_cc)
+
+glm_firth4 <- logistf(survival ~ line, data = survival_cc)
+
+(firth_anova_int <- anova(glm_firth, glm_firth2, method = "PLR")) ## NS interaction
+
+(firth_anova_line <- anova(glm_firth2, glm_firth3, method = "PLR")) ## sig ME of line
+
+(firth_anova_env <- anova(glm_firth2, glm_firth4, method = "PLR")) ## sig ME of env
 ```
 
 ### glm3: leaf
+
+Summary:
+
+- glm residual diagnostics hold up, but not for lm.
+- lm type III SS can be calculated, but interaction is not significant.
+- glm type III SS cannot be calculated using Anova function, but joint_tests indicates all terms sig. 
 
 ```{r leaf}
 # prob dist
@@ -138,24 +184,34 @@ fit.nbinom$aic
 ## nbinom, norm, poiss (best to worst)
 
 # model
+lm3 <- lm(sqrt(leaf) ~ env * line, 
+            data = leaf_cc)
+
 glm3 <- glm.nb(leaf ~ env * line, 
             data = leaf_cc)
 
 # residual diagnostics
+plot(lm3) ## not great
+
 simOut_glm3 <- simulateResiduals(fittedModel = glm3, n = 1000)
 plot(simOut_glm3) ## OK
 testDispersion(simOut_glm3) ## NS
 
 # model summary
-summary(glm3)
-(ANODEV_leaf <- Anova(glm3, type = 2)) ## error if type 3 used, see message below:
-# Error in glm.fit(x[, jj, drop = FALSE], y, wt, offset = object$offset,  :
-#   NA/NaN/Inf in 'x'
-# In addition: Warning message:
-# step size truncated due to divergence
+(ANODEV_lm_leaf <- Anova(lm3, type = 2)) ## NS interaction, type 2 used
+(joint_tests(lm3)) # matches Anova results
+(ANODEV_glm_leaf <- Anova(glm3, type = 2)) ## error if set to type 3, type 2 used
+(joint_tests(glm3)) ## all terms sig.
 ```
 
 ### glm4: nod
+
+Summary:
+
+- glm residual diagnostics hold up, but not for lm.
+- lm type III SS can be calculated, but interaction is not significant.
+- glm type III SS can be calculated using Anova function and joint_tests closely matches, 
+  but non-convergence warning issued
 
 ```{r nod}
 # prob dist
@@ -175,20 +231,31 @@ fit.nbinom$aic
 ## nbinom, norm, poisson (best to worst)
 
 # model
+lm4 <- lm(sqrt(nod) ~ env * line,
+          data = nod_cc)
+
 glm4 <- glm.nb(nod ~ env * line, 
             data = nod_cc)
 
 # residual diagnostics
+plot(lm4) ## bad
+
 simOut_glm4 <- simulateResiduals(fittedModel = glm4, n = 1000)
 plot(simOut_glm4) ## OK
 testDispersion(simOut_glm4) ## NS
 
 # model summary
-summary(glm4)
-(ANODEV_nod <- Anova(glm4, type = 3))
+(ANODEV_lm_nod <- Anova(lm4, type = 2)) ## NS interaction, type 2 used
+(joint_tests(lm4)) ## matches Anova results
+(ANODEV_glm_nod <- Anova(glm4, type = 3)) ## non-convergence warning
+(joint_tests(glm4)) ## close to Anova results
 ```
 
 ### glm5: choice
+
+Summary:
+
+- type II SS used, no interaction
 
 ```{r choice}
 # prob dist
@@ -212,11 +279,14 @@ glm5 <- lm(choice ~ line,
 plot(glm5)
 
 # model summary
-summary(glm5)
 (ANODEV_choice <- Anova(glm5, type = 2)) # no interaction term, type 2 used
 ```
 
 ### glm6: red nodules
+
+Summary:
+
+- type II SS used, no interaction
 
 ```{r red_nod}
 # prob dist
@@ -245,11 +315,17 @@ plot(simOut_glm6) ## OK
 testDispersion(simOut_glm6) ## NS
 
 # model summary
-summary(glm6)
 (ANODEV_totalred <- Anova(glm6, type = 2)) ## no interaction term, type 2 used
 ```
 
 ### glm7: flower
+
+Summary:
+
+- residual diagnostics hold up
+- type III SS can be calculated using Anova, but warning about fitted probabilities issued
+- checked separation in model, and uncovered Inf's
+- used Firth's correction to deal with separation, and detected sig. ME's of line and env, but no interaction
 
 ```{r flower}
 # prob dist
@@ -274,7 +350,7 @@ flower_cc$flo_succ <- as.numeric(flower_cc$flo > 0)
 # model
 glm7 <- glm(flo_succ ~ env * line,
              family= binomial,
-             data = flower_cc)
+             data = subset(flower_cc, survival > 0))
 
 # residual diagnostics
 simOut_glm7 <- simulateResiduals(fittedModel = glm7, n = 1000)
@@ -282,11 +358,41 @@ plot(simOut_glm7) ## OK
 testDispersion(simOut_glm7) ## NS
 
 # model summary
-summary(glm7)
-(ANODEV_flo <- Anova(glm7, type = 2)) ## NS interaction term, type 2 used
+(ANODEV_flo <- Anova(glm7, type = 3)) ## no terms sig., fitted probability warning issued
+(joint_tests(glm7)) ## matches Anova results
+
+# Check separation issue
+(glm7_check <- glm(flo_succ ~ env * line,
+             family= binomial,
+             data = subset(flower_cc, survival > 0),
+            method = "detect_separation")) ## Inf detected
+
+# firth correction
+glm7_firth <- logistf(flo_succ ~ env * line, data = subset(flower_cc, survival > 0))
+
+glm7_firth2 <- logistf(flo_succ ~ env + line, data = subset(flower_cc, survival > 0))
+
+glm7_firth3 <- logistf(flo_succ ~ env, data = subset(flower_cc, survival > 0))
+
+glm7_firth4 <- logistf(flo_succ ~ line, data = subset(flower_cc, survival > 0))
+
+(firth_anova_int <- anova(glm7_firth, glm7_firth2, method = "PLR")) ## NS interaction
+
+(firth_anova_line <- anova(glm7_firth2, glm7_firth3, method = "PLR")) ## sig ME of line
+
+(firth_anova_env <- anova(glm7_firth2, glm7_firth4, method = "PLR")) ## sig ME of env
 ```
 
 ### glm8: fruit
+
+Summary:
+
+- residual diagnostics hold up on binomial data, not count data 
+
+Binomial:
+- type III SS can be calculated using Anova, but warning about fitted probabilities issued
+- checked separation in model, and uncovered Inf's
+- used Firth's correction to deal with separation, and detected sig. ME's of line and env, but no interaction
 
 ```{r fruit}
 # prob dist
@@ -308,8 +414,10 @@ fit.nbinom$aic
 # calculate fruit success
 fruit_cc$fru_succ <- as.numeric(fruit_cc$fru > 0) 
 
-
 # models
+lm8_nz <- lm(sqrt(fru) ~ env * line, 
+              data = subset(fruit_cc, fru > 0))
+
 glm8_nz <- glm.nb(fru ~ env * line, 
               data = subset(fruit_cc, fru > 0))
 
@@ -318,8 +426,10 @@ glm8_succ <- glm(fru_succ ~ env * line,
               data = fruit_cc)
 
 # residual diagnostics
+plot(lm8_nz) ## OK
+
 simOut_glm8_nz <- simulateResiduals(fittedModel = glm8_nz, n = 1000)
-plot(simOut_glm8_nz) ## not great
+plot(simOut_glm8_nz) ## bad
 testDispersion(simOut_glm8_nz) ## NS
 
 simOut_glm8_succ <- simulateResiduals(fittedModel = glm8_succ, n = 1000)
@@ -327,9 +437,33 @@ plot(simOut_glm8_succ) ## OK
 testDispersion(simOut_glm8_succ) ## NS
 
 # model summaries
-summary(glm8_nz)
-(ANODEV_fru_nz <- Anova(glm8_nz, type = 2)) ## cannot assess type 3, aliased coeff in model
-summary(glm8_succ)
-(ANODEV_fru_succ <- Anova(glm8_succ, type = 2)) ## NS interaction term, type 2 used
+(ANODEV_lm_fru_nz <- Anova(lm8_nz, type = 2)) ## singular, cannot assess type 3, type 2 used
+(joint_tests(lm8_nz)) ## matches Anova results
+(ANODEV_glm_fru_nz <- Anova(glm8_nz, type = 2)) ## singular, cannot assess type 3, type 2 used
+(joint_tests(glm8_nz)) ## matches Anova results
+
+(ANODEV_fru_succ <- Anova(glm8_succ, type = 3)) ## no terms sig., fitted probability warning issued
+(joint_tests(glm8_succ)) ## close to Anova results
+
+# Check separation issue
+(glm8_check <- glm(fru_succ ~ env * line, 
+              family = binomial,   
+              data = fruit_cc,
+            method = "detect_separation")) ## Inf detected
+
+# firth correction
+glm8_firth <- logistf(fru_succ ~ env * line, data = fruit_cc)
+
+glm8_firth2 <- logistf(fru_succ ~ env + line, data = fruit_cc)
+
+glm8_firth3 <- logistf(fru_succ ~ env, data = fruit_cc)
+
+glm8_firth4 <- logistf(fru_succ ~ line, data = fruit_cc)
+
+(firth_anova_int <- anova(glm8_firth, glm8_firth2, method = "PLR")) ## NS interaction
+
+(firth_anova_line <- anova(glm8_firth2, glm8_firth3, method = "PLR")) ## marg sig ME of line
+
+(firth_anova_env <- anova(glm8_firth2, glm8_firth4, method = "PLR")) ## sig ME of env
 ```
 
