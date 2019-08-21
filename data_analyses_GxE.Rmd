@@ -74,10 +74,13 @@ fit.lnorm$aic
 ## lnorm, gamma, norm (best to worst)
 
 # model
+<<<<<<< HEAD
 
 lm1 <- lm(log(shoot) ~ env * line,
             data = shoot_cc)
 
+=======
+>>>>>>> 2ddd9ca6ffb84cb35f54d0e528da88655a057fe0
 glm1 <- glm(shoot ~ env * line,
             family = Gamma(link="log"),
             data = shoot_cc)
