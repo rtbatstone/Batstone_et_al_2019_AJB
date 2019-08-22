@@ -1,0 +1,108 @@
+---
+title: "data_analyses_SxE"
+author: "Rebecca Batstone"
+date: "`r format(Sys.Date())`"
+output: github_document
+editor_options: 
+  chunk_output_type: console
+---
+
+## Load packages
+
+```{r setup, warning=FALSE, message=FALSE}
+# packages
+library("tidyverse") ## includes ggplot2, dplyr, readr, stringr
+library("cowplot") ## paneled graphs
+library("car") ## Anova function
+```
+
+## Load raw means
+
+```{r save}
+# mean across environments
+load("./G_combined_raw.Rdata")
+## mean within each environment:
+load("./GxE_combined_raw.Rdata")
+```
+
+## S x E option 1: global means (as used in first version of the manuscript)
+
+### Calculate rel/stand means
+
+```{r SxE_global}
+# calculate relativized and standardized traits
+GE_comb_raw_sel <- GE_comb_raw %>%
+  mutate(rel_surv = surv/mean(surv, na.rm=TRUE),
+         rel_shoot = shoot/mean(shoot, na.rm=TRUE),
+         rel_leaf = leaf/mean(leaf, na.rm=TRUE),
+         rel_flower = flower/mean(flower, na.rm=TRUE),
+         rel_fruit = fruit/mean(fruit, na.rm=TRUE),
+         stand_nod = (nod - mean(nod, na.rm=TRUE))/sd(nod, na.rm=TRUE)) %>%
+  as.data.frame(.)
+```
+
+### S x E models
+
+```{r SxE_mods}
+SxE_function <- function(df, trait){
+   lin_mod <- lm(get(trait) ~ stand_nod*env, data = df)
+   lin_mod_sum <- summary(lin_mod)
+   print(lin_mod_aov <- Anova(lin_mod, type = 3))
+   quad_mod <- lm(get(trait) ~ (stand_nod + I(stand_nod^2))*env, data = df)
+   quad_mod_sum <- summary(quad_mod)
+   print(quad_mod_aov <- Anova(quad_mod, type = 3))
+   mod_comp <- anova(lin_mod, quad_mod)
+   
+   return(list(lin_mod_sum, quad_mod_sum, lin_mod_aov, quad_mod_aov, mod_comp))
+ }
+ 
+ # specify vars to loop over
+var.list <- c("rel_surv","rel_shoot","rel_leaf","rel_flower","rel_fruit")
+ 
+SxE_out <- lapply(var.list, SxE_function, df = GE_comb_raw_sel)
+```
+
+## S x E option 2: means within envs (as suggested by R1)
+
+### Calculate rel/stand means
+
+```{r SxE_win_env}
+# calculate relativized and standardized traits
+GE_comb_raw_sel2 <- GE_comb_raw %>%
+  group_by(env) %>%
+  mutate(rel_surv = surv/mean(surv, na.rm=TRUE),
+         rel_shoot = shoot/mean(shoot, na.rm=TRUE),
+         rel_leaf = leaf/mean(leaf, na.rm=TRUE),
+         rel_flower = flower/mean(flower, na.rm=TRUE),
+         rel_fruit = fruit/mean(fruit, na.rm=TRUE),
+         stand_nod = (nod - mean(nod, na.rm=TRUE))/sd(nod, na.rm=TRUE)) %>%
+  as.data.frame(.)
+```
+
+### S x E models
+
+```{r SxE_mods2}
+SxE_out2 <- lapply(var.list, SxE_function, df = GE_comb_raw_sel2)
+```
+
+### Combine results
+
+```{r combine}
+SxE_lin_aov1 <- rbind(SxE_out[[1]][[3]], SxE_out[[2]][[3]], SxE_out[[3]][[3]], 
+                     SxE_out[[4]][[3]],SxE_out[[5]][[3]])
+
+SxE_quad_aov1 <- rbind(SxE_out[[1]][[4]], SxE_out[[2]][[4]], SxE_out[[3]][[4]], 
+                     SxE_out[[4]][[4]],SxE_out[[5]][[4]])
+
+SxE_lin_aov2 <- rbind(SxE_out2[[1]][[3]], SxE_out2[[2]][[3]], SxE_out2[[3]][[3]], 
+                     SxE_out2[[4]][[3]],SxE_out2[[5]][[3]])
+
+SxE_quad_aov2 <- rbind(SxE_out2[[1]][[4]], SxE_out2[[2]][[4]], SxE_out2[[3]][[4]], 
+                     SxE_out2[[4]][[4]],SxE_out2[[5]][[4]])
+
+SxE_lin_comp <- cbind(SxE_lin_aov1, SxE_lin_aov2) ## compare global models to within-environment models
+SxE_quad_comp <- cbind(SxE_quad_aov1, SxE_quad_aov2) ## compare global models to within-environment models
+
+write.csv(SxE_lin_comp, "SxE_res_lin_comp.csv")
+write.csv(SxE_quad_comp, "SxE_res_quad_comp.csv")
+```
