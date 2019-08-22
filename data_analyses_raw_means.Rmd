@@ -10,11 +10,12 @@ editor_options:
 ## Load packages
 
 ```{r setup, warning=FALSE, message=FALSE}
-
 # packages
 library("tidyverse") #includes ggplot2, dplyr, readr, stringr
 library("cowplot") # paneled graphs
 library("reshape2") # dcast function
+library("corrplot") # to make correlation plots
+library("RColorBrewer") # to specify color brewers
 ```
 
 ## Spreadsheets
@@ -148,7 +149,7 @@ sum_fru_GE.raw <- fruit_cc %>%
 ## Combine raw means
 
 ```{r comb_means, warning=FALSE}
-## main effect of line across environments
+# main effect of line across environments
 G_comb_raw_SE1 <- merge(y=sum_shoot_G.raw, x=sum_surv_G.raw, by = "line", all = TRUE)
 G_comb_raw_SE2 <- merge(y=G_comb_raw_SE1, x=sum_leaf_G.raw, by = "line", all = TRUE)
 G_comb_raw_SE3 <- merge(y=G_comb_raw_SE2, x=sum_nod_G.raw, by = "line", all = TRUE)
@@ -193,9 +194,18 @@ GE_comb_raw <- GE_comb_raw3 %>%
 names(GE_comb_raw) <- c("line","env","totalred","choice","fruit","flower",
                        "nod","leaf","surv","shoot")
 
-## dcast for env 
+# dcast for env (long to wide format)
 # reshape from long to wide (for each env)
 GE_comb_raw.w <- reshape(GE_comb_raw, idvar = "line", timevar = "env", direction = "wide")
+```
+
+## Save raw means
+
+```{r save}
+# mean across environments
+save(G_comb_raw, file = "./G_combined_raw.Rdata")
+## mean within each environment:
+save(GE_comb_raw, file = "./GxE_combined_raw.Rdata")
 ```
 
 ## Reaction norm plots (same traits across env)
@@ -413,3 +423,190 @@ save_plot("rxn_norms.pdf", fig1,
           base_aspect_ratio = 1.3
           )
 ```
+
+## Corrplot of raw trait values over environments
+
+```{r corrplot_emmeans}
+# set line as row-names
+G_comb_raw.r <- G_comb_raw[,-1]
+rownames(G_comb_raw.r) <- G_comb_raw[,1]
+
+# set label colours
+traitcolors1 <- rep(NA,8)
+names(traitcolors1) <- names(G_comb_raw.r)
+traitcolors1[c(3:4)]   <- 'green4' # greenhouse-only
+traitcolors1[c(1:2)]   <- 'darkblue'   # field-only
+traitcolors1[c(5:8)]   <- 'gold3'   # combined field and greenhouse
+
+# compute correlation matrix
+G_comb_raw.r_mat <- cor(G_comb_raw.r, use="pairwise.complete.obs")
+
+# compute the matrix of the p-value
+source('corr_test.R')
+library(psych)
+library(corrplot)
+
+p.mat1 <- cor.mtest(G_comb_raw.r)
+p.mat1.c <- psych::corr.test(G_comb_raw.r, adjust="bonferroni")$p
+
+# get order of columns
+# ord1 <- corrMatOrder(G_comb_raw.r_mat, order="hclust")
+ord1 <- c(3,4,1,2,5,6,7,8)
+
+# order colours and variables by ord
+traitcolors1.ro <- traitcolors1[ord1]
+
+G_comb_raw.r_mat.o <- G_comb_raw.r_mat[ord1 , ord1]
+p.mat1.o <- p.mat1[ord1 , ord1]
+p.mat1.c.o <- p.mat1.c[ord1 , ord1]
+
+## corrplot figure
+
+sig_level <- 0.05/28
+
+# upper
+bg_colors_upper1 <- p.mat1.c.o < sig_level
+bg_colors_upper1[bg_colors_upper1 == T] <- "grey"
+bg_colors_upper1[bg_colors_upper1 == F] <- "white"
+diag(bg_colors_upper1) <- "white" # if the diagonal values shall be white
+# select colors from lower/upper1 part of matrix:
+bg_colors_upper1 <- bg_colors_upper1[upper.tri(bg_colors_upper1, diag=T)]
+
+### and the plot
+
+pdf('corrplot_over_env.pdf', width = 10, height = 10, pointsize = 14)
+
+par(xpd = TRUE)
+
+corrplot(G_comb_raw.r_mat.o, method = "ellipse", type="upper",
+         #order="hclust", 
+         addCoef.col = "black",
+         tl.pos = "tl",
+         tl.col = traitcolors1.ro,
+         tl.srt=45,
+         col = rev(brewer.pal(n = 8, name = "RdYlBu")),
+         # p.mat = p.mat1.o, sig.level = 0.1, insig = "p-value",
+         number.digits = 3,
+         bg = bg_colors_upper1,
+         diag = TRUE,
+         mar=c(0,0,2,3))
+         
+corrplot(G_comb_raw.r_mat.o, method = "ellipse", type="lower",
+         #order="hclust", 
+         # number.cex = 1,
+         col = rev(brewer.pal(n = 8, name = "RdYlBu")),
+         add=T, 
+         tl.pos="n", 
+         cl.pos="n",
+         #bg = bg_colors_upper1,
+         #addCoef.col = "black",
+         p.mat = p.mat1.c.o, sig.level = -1, insig = "p-value",
+         number.digits = 3,
+         #tl.col = newcolours,
+         #bg = bg_colors_lower,
+         diag = FALSE)
+
+dev.off()
+
+## result: shoot/leaf and red_nod/total_nod are correlated no matter the environment
+```
+
+## Corrplot btw traits calculated within environments
+
+```{r corr_traits_env}
+
+############ corrplot overview
+
+## make line rownames
+GE_comb_raw.r <- GE_comb_raw.w[ , -1]
+rownames(GE_comb_raw.r) <- GE_comb_raw.w[ , 1]
+
+# select columns of interest
+GE_comb_raw.rs <- GE_comb_raw.r[,c(1:2,5:8,11:16,19:24,27:32,37:40)]
+# reorder cols
+GE_comb_raw.rs <- GE_comb_raw.rs[,c(6,5,4,3,2,1,
+                                    12,11,10,9,8,7,
+                                    18,17,16,15,14,13,
+                                    24,23,22,21,20,19,
+                                    28,27,26,25)]
+
+# rename cols
+names(GE_comb_raw.rs) <- c("GH_shoot","GH_survival","GH_leaf","GH_nod","GH_choice","GH_red_nod",
+                          "p1_shoot","p1_survival","p1_leaf","p1_nod","p1_flower","p1_fruit",
+                          "p2_shoot","p2_survival","p2_leaf","p2_nod","p2_flower","p2_fruit",
+                          "p3_shoot","p3_survival","p3_leaf","p3_nod","p3_flower","p3_fruit",
+                          "p4_shoot","p4_survival","p4_leaf","p4_nod")
+
+# set label colours
+traitcolors2 <- rep(NA,28)
+names(traitcolors2) <- names(GE_comb_raw.rs)
+traitcolors2[c(1:6)]   <- 'green4' # greenhouse
+traitcolors2[c(7:12)]   <- 'darkred'   # field plot 1
+traitcolors2[c(13:18)]   <- 'darkblue'   # field plot 2
+traitcolors2[c(19:24)]   <- 'darkmagenta'   # field plot 3
+traitcolors2[c(25:28)]   <- 'darkgoldenrod'   # field plot 4
+
+# compute correlation matrix
+GE_comb_raw.r_mat <- cor(GE_comb_raw.rs, use="pairwise.complete.obs")
+
+# compute the matrix of the p-value
+source('corr_test.R')
+
+p.mat2 <- cor.mtest(GE_comb_raw.rs)
+p.mat2.c <- psych::corr.test(GE_comb_raw.rs, adjust="bonferroni")$p
+
+# get order of columns
+ord2 <- corrMatOrder(GE_comb_raw.r_mat, order="alphabet")
+
+# ord2 colours and variables by ord
+traitcolors2.ro <- traitcolors2[ord2]
+
+GE_comb_raw.r_mat.o <- GE_comb_raw.r_mat[ord2 , ord2]
+p.mat2.o <- p.mat2[ord2 , ord2]
+p.mat2.c.o <- p.mat2.c[ord2 , ord2]
+
+## corrplot figure
+
+sig_level <- 0.05
+
+# upper
+bg_colors_upper2 <- p.mat2.c.o < sig_level
+bg_colors_upper2[bg_colors_upper2 == T] <- "grey"
+bg_colors_upper2[bg_colors_upper2 == F] <- "white"
+diag(bg_colors_upper2) <- "white" ## if the diagonal values shall be white
+# select colors from lower/upper2 part of matrix:
+bg_colors_upper2 <- bg_colors_upper2[upper.tri(bg_colors_upper2, diag=T)]
+
+pdf('corrplot_p-adjust_all.pdf', width = 16, height = 16, pointsize = 15)
+
+cex.before <- par("cex")
+par(cex = 0.7)
+corrplot(GE_comb_raw.r_mat.o, method = "ellipse", type="upper",
+         #ord2="hclust", 
+         addCoef.col = "black",
+         tl.pos = "td",
+         tl.col = traitcolors2.ro,
+         tl.srt=45,
+         tl.cex = 1/par("cex"),
+         cl.cex = 1/par("cex"),
+         col = rev(brewer.pal(n = 8, name = "RdYlBu")),
+         # p.mat2 = p.mat23.o, sig.level = 0.05, insig = "p-value",
+         number.digits = 3,
+         bg = bg_colors_upper2,
+         diag = TRUE)
+par(cex = cex.before)
+
+dev.off()
+```
+
+
+## Resulting corrplots
+
+```{r corrplot1, out.width="1\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Correlation plot of traits averaged across environments"), echo=FALSE}
+knitr::include_graphics("./corrplot_over_env.pdf")
+```
+
+```{r corrplot2, out.width="1\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Correlation plot of traits averaged within each environments"), echo=FALSE}
+knitr::include_graphics("./corrplot_p-adjust_all.pdf")
+```
+
