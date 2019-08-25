@@ -25,7 +25,7 @@ load("./G_combined_raw.Rdata")
 load("./GxE_combined_raw.Rdata")
 ```
 
-## S x E option 1: global means (as used in first version of the manuscript)
+## Option 1: global means (as used in first version of the manuscript)
 
 ### Calculate rel/stand means
 
@@ -41,9 +41,9 @@ GE_comb_raw_sel <- GE_comb_raw %>%
   as.data.frame(.)
 ```
 
-### S x E models
+### Option 1: S x E models
 
-```{r SxE_mods}
+```{r op1_SxE_mods}
 SxE_function <- function(df, trait){
    lin_mod <- lm(get(trait) ~ stand_nod*env, data = df)
    lin_mod_sum <- summary(lin_mod)
@@ -56,13 +56,13 @@ SxE_function <- function(df, trait){
    return(list(lin_mod_sum, quad_mod_sum, lin_mod_aov, quad_mod_aov, mod_comp))
  }
  
- # specify vars to loop over
+# specify vars to loop over
 var.list <- c("rel_surv","rel_shoot","rel_leaf","rel_flower","rel_fruit")
  
 SxE_out <- lapply(var.list, SxE_function, df = GE_comb_raw_sel)
 ```
 
-## S x E option 2: means within envs (as suggested by R1)
+## Option 2: means within envs (as suggested by R1)
 
 ### Calculate rel/stand means
 
@@ -79,9 +79,9 @@ GE_comb_raw_sel2 <- GE_comb_raw %>%
   as.data.frame(.)
 ```
 
-### S x E models
+### Option 2: S x E models
 
-```{r SxE_mods2}
+```{r op2_SxE_mods}
 SxE_out2 <- lapply(var.list, SxE_function, df = GE_comb_raw_sel2)
 ```
 
@@ -105,4 +105,117 @@ SxE_quad_comp <- cbind(SxE_quad_aov1, SxE_quad_aov2) ## compare global models to
 
 write.csv(SxE_lin_comp, "SxE_res_lin_comp.csv")
 write.csv(SxE_quad_comp, "SxE_res_quad_comp.csv")
+```
+
+## Selection coefficients/gradients within each environment
+
+```{r sel_win_env}
+# function to iterate over environments, and traits
+
+sel_win_env_function <- function(df, trait){
+   trait <- print(paste(trait))  
+   lin_mod <- lm(get(trait) ~ stand_nod, data = df)
+   lin_mod_sum <- summary(lin_mod)
+   lin_mod_aov <- Anova(lin_mod, type = 2)
+   quad_mod <- lm(get(trait) ~ stand_nod + I(stand_nod^2), data = df)
+   quad_mod_sum <- summary(quad_mod)
+   quad_mod_aov <- Anova(quad_mod, type = 2)
+   mod_comp <- anova(lin_mod, quad_mod)
+   
+   return(list(trait, lin_mod_sum, quad_mod_sum, lin_mod_aov, quad_mod_aov, mod_comp))
+}
+
+# apply to traits with data in all envs
+
+# assign vars to loop over
+env.list1 <- unique(GE_comb_raw_sel$env)
+
+sel_out1 <- lapply(env.list1, FUN = function(e){
+  df.use <- filter(GE_comb_raw_sel, env==e)
+  surv.out <- sel_win_env_function(df.use, var.list[1])
+  shoot.out <- sel_win_env_function(df.use, var.list[2])
+  leaf.out <- sel_win_env_function(df.use, var.list[3])
+  env <- print(paste(e))  
+  
+  return(list(env, surv.out, shoot.out, leaf.out))
+})
+
+# apply to traits with data in only some envs
+
+# assign vars to loop over
+env.list2 <- c("plot_1","plot_2","plot_3")
+
+sel_out2 <- lapply(env.list2, FUN = function(e){
+  df.use <- filter(GE_comb_raw_sel, env==e)
+  flower.out <- sel_win_env_function(df.use, var.list[4])
+  fruit.out <- sel_win_env_function(df.use, var.list[5])
+  env <- print(paste(e))  
+  
+  return(list(env, flower.out, fruit.out))
+})
+
+# Combine dfs (ANOVA res)
+
+ANOVA_sel_survival <- rbind(sel_out1[[1]][[2]][[4]],sel_out1[[1]][[2]][[5]], ## GH
+                            sel_out1[[2]][[2]][[4]],sel_out1[[2]][[2]][[5]], ## plot_1
+                            sel_out1[[3]][[2]][[4]],sel_out1[[3]][[2]][[5]], ## plot_2
+                            sel_out1[[4]][[2]][[4]],sel_out1[[4]][[2]][[5]], ## plot_3
+                            sel_out1[[5]][[2]][[4]],sel_out1[[5]][[2]][[5]]) ## plot_4
+
+ANOVA_sel_shoot <- rbind(sel_out1[[1]][[3]][[4]],sel_out1[[1]][[3]][[5]], 
+                         sel_out1[[2]][[3]][[4]],sel_out1[[2]][[3]][[5]],
+                         sel_out1[[3]][[3]][[4]],sel_out1[[3]][[3]][[5]], 
+                         sel_out1[[4]][[3]][[4]],sel_out1[[4]][[3]][[5]],
+                         sel_out1[[5]][[3]][[4]],sel_out1[[5]][[3]][[5]])
+
+ANOVA_sel_leaf <- rbind(sel_out1[[1]][[4]][[4]],sel_out1[[1]][[4]][[5]], 
+                        sel_out1[[2]][[4]][[4]],sel_out1[[2]][[4]][[5]],
+                        sel_out1[[3]][[4]][[4]],sel_out1[[3]][[4]][[5]], 
+                        sel_out1[[4]][[4]][[4]],sel_out1[[4]][[4]][[5]],
+                        sel_out1[[5]][[4]][[4]],sel_out1[[5]][[4]][[5]])
+
+ANOVA_sel_flower <- rbind(sel_out2[[1]][[2]][[4]],sel_out2[[1]][[2]][[5]], 
+                          sel_out2[[2]][[2]][[4]],sel_out2[[2]][[2]][[5]],
+                          sel_out2[[3]][[2]][[4]],sel_out2[[3]][[2]][[5]])
+
+ANOVA_sel_fruit <- rbind(sel_out2[[1]][[3]][[4]],sel_out2[[1]][[3]][[5]], 
+                         sel_out2[[2]][[3]][[4]],sel_out2[[2]][[3]][[5]],
+                         sel_out2[[3]][[3]][[4]],sel_out2[[3]][[3]][[5]])
+
+ANOVA_sel_comb1 <- cbind(ANOVA_sel_survival, ANOVA_sel_shoot, ANOVA_sel_leaf)
+ANOVA_sel_comb2 <- cbind(ANOVA_sel_flower, ANOVA_sel_fruit)
+write.csv(ANOVA_sel_comb1, "ANOVA_sel1_win_env.csv")
+write.csv(ANOVA_sel_comb2, "ANOVA_sel2_win_env.csv")
+
+# combine dfs (regression res)
+reg_sel_survival <- rbind(sel_out1[[1]][[2]][[2]]$coefficients, ## GH
+                            sel_out1[[2]][[2]][[2]]$coefficients, ## plot_1
+                            sel_out1[[3]][[2]][[2]]$coefficients, ## plot_2
+                            sel_out1[[4]][[2]][[2]]$coefficients, ## plot_3
+                            sel_out1[[5]][[2]][[2]]$coefficients) ## plot_4
+
+reg_sel_shoot <- rbind(sel_out1[[1]][[3]][[2]]$coefficients, 
+                         sel_out1[[2]][[3]][[2]]$coefficients,
+                         sel_out1[[3]][[3]][[3]]$coefficients, 
+                         sel_out1[[4]][[3]][[2]]$coefficients,
+                         sel_out1[[5]][[3]][[2]]$coefficients)
+
+reg_sel_leaf <- rbind(sel_out1[[1]][[4]][[2]]$coefficients, 
+                        sel_out1[[2]][[4]][[2]]$coefficients,
+                        sel_out1[[3]][[4]][[2]]$coefficients, 
+                        sel_out1[[4]][[4]][[2]]$coefficients,
+                        sel_out1[[5]][[4]][[2]]$coefficients)
+
+reg_sel_flower <- rbind(sel_out2[[1]][[2]][[2]]$coefficients, 
+                          sel_out2[[2]][[2]][[2]]$coefficients,
+                          sel_out2[[3]][[2]][[2]]$coefficients)
+
+reg_sel_fruit <- rbind(sel_out2[[1]][[3]][[2]]$coefficients, 
+                         sel_out2[[2]][[3]][[2]]$coefficients,
+                         sel_out2[[3]][[3]][[2]]$coefficients)
+
+reg_sel_comb1 <- cbind(reg_sel_survival, reg_sel_shoot, reg_sel_leaf)
+reg_sel_comb2 <- cbind(reg_sel_flower, reg_sel_fruit)
+write.csv(reg_sel_comb1, "reg_sel1_win_env.csv")
+write.csv(reg_sel_comb2, "reg_sel2_win_env.csv")
 ```
