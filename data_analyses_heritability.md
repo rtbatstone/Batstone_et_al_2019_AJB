@@ -1,15 +1,12 @@
----
-title: "data_analyses_heritability"
-author: "Rebecca Batstone"
-date: "`r format(Sys.Date())`"
-output: github_document
-editor_options: 
-  chunk_output_type: console
----
+data\_analyses\_heritability
+================
+Rebecca Batstone
+2019-08-26
 
-## Load packages
+Load packages
+-------------
 
-```{r setup, warning=FALSE, message=FALSE}
+``` r
 # packages
 library("tidyverse") ## includes ggplot2, dplyr, readr, stringr
 library("cowplot") ## paneled graphs
@@ -17,9 +14,10 @@ library("car") ## Anova function
 library("lme4") ## linear mixed models
 ```
 
-## Spreadsheets
+Spreadsheets
+------------
 
-```{r import_df, warning=FALSE, message=FALSE}
+``` r
 # created using "data_setup.Rmd"
 date <- format(Sys.Date())
 load(paste0("combined_field_GH_", date, ".Rdata"))
@@ -33,10 +31,10 @@ load("./dataset_cleaned/flowers_cleaned.Rdata")
 load("./dataset_cleaned/fruits_cleaned.Rdata")
 ```
 
-## Models to calculate heritability
+Models to calculate heritability
+--------------------------------
 
-```{r herit_mods}
-
+``` r
 # function (model structure depends on trait and env)
 herit_fun_GH <- function(df, trait){
   
@@ -155,7 +153,25 @@ herit_out_GH <- lapply(env.list_GH, FUN = function(e){
   return(list(env.out,shoot.out,leaf.out, nod.out, choice.out,totalred.out))
   
 })
+```
 
+    ## refitting model(s) with ML (instead of REML)
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl =
+    ## control$checkConv, : Model failed to converge with max|grad| = 0.00251194
+    ## (tol = 0.002, component 1)
+
+    ## refitting model(s) with ML (instead of REML)
+    ## refitting model(s) with ML (instead of REML)
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl =
+    ## control$checkConv, : Model failed to converge with max|grad| = 0.00261928
+    ## (tol = 0.002, component 1)
+
+    ## refitting model(s) with ML (instead of REML)
+    ## refitting model(s) with ML (instead of REML)
+
+``` r
 # Subset by environment and calculate variable 1 and variable 2
 herit_out_F1 <- lapply(env.list_F1, FUN = function(e){
   
@@ -169,7 +185,29 @@ herit_out_F1 <- lapply(env.list_F1, FUN = function(e){
   return(list(env.out,shoot.out,leaf.out, nod.out))
   
 })
+```
 
+    ## refitting model(s) with ML (instead of REML)
+    ## refitting model(s) with ML (instead of REML)
+    ## refitting model(s) with ML (instead of REML)
+    ## refitting model(s) with ML (instead of REML)
+    ## refitting model(s) with ML (instead of REML)
+    ## refitting model(s) with ML (instead of REML)
+    ## refitting model(s) with ML (instead of REML)
+    ## refitting model(s) with ML (instead of REML)
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## refitting model(s) with ML (instead of REML)
+    ## refitting model(s) with ML (instead of REML)
+    ## refitting model(s) with ML (instead of REML)
+
+    ## boundary (singular) fit: see ?isSingular
+    ## boundary (singular) fit: see ?isSingular
+
+    ## refitting model(s) with ML (instead of REML)
+
+``` r
 # Subset by environment and calculate variable 1 and variable 2
 herit_out_F2 <- lapply(env.list_F2, FUN = function(e){
   
@@ -181,7 +219,13 @@ herit_out_F2 <- lapply(env.list_F2, FUN = function(e){
   return(list(env.out,fru.out))
   
 })
+```
 
+    ## refitting model(s) with ML (instead of REML)
+    ## refitting model(s) with ML (instead of REML)
+    ## refitting model(s) with ML (instead of REML)
+
+``` r
 # Combine dfs
 
 # VarCorr of model terms (rand effs)

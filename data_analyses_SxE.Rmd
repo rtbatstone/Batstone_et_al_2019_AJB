@@ -45,12 +45,13 @@ GE_comb_raw_sel <- GE_comb_raw %>%
 
 ```{r op1_SxE_mods}
 SxE_function <- function(df, trait){
+   print(paste(trait))
    lin_mod <- lm(get(trait) ~ stand_nod*env, data = df)
    lin_mod_sum <- summary(lin_mod)
-   print(lin_mod_aov <- Anova(lin_mod, type = 3))
+   lin_mod_aov <- Anova(lin_mod, type = 3)
    quad_mod <- lm(get(trait) ~ (stand_nod + I(stand_nod^2))*env, data = df)
    quad_mod_sum <- summary(quad_mod)
-   print(quad_mod_aov <- Anova(quad_mod, type = 3))
+   quad_mod_aov <- Anova(quad_mod, type = 3)
    mod_comp <- anova(lin_mod, quad_mod)
    
    return(list(lin_mod_sum, quad_mod_sum, lin_mod_aov, quad_mod_aov, mod_comp))
@@ -85,6 +86,14 @@ GE_comb_raw_sel2 <- GE_comb_raw %>%
 SxE_out2 <- lapply(var.list, SxE_function, df = GE_comb_raw_sel2)
 ```
 
+### Option 3: standardize traits across environments, absolute fitness
+
+```{r op3_SxE_mods}
+# new var list (absolute fitness values
+var.list2 <- c("surv","shoot","leaf","flower","fruit")
+SxE_out3 <- lapply(var.list2, SxE_function, df = GE_comb_raw_sel)
+```
+
 ### Combine results
 
 ```{r combine}
@@ -100,8 +109,14 @@ SxE_lin_aov2 <- rbind(SxE_out2[[1]][[3]], SxE_out2[[2]][[3]], SxE_out2[[3]][[3]]
 SxE_quad_aov2 <- rbind(SxE_out2[[1]][[4]], SxE_out2[[2]][[4]], SxE_out2[[3]][[4]], 
                      SxE_out2[[4]][[4]],SxE_out2[[5]][[4]])
 
-SxE_lin_comp <- cbind(SxE_lin_aov1, SxE_lin_aov2) ## compare global models to within-environment models
-SxE_quad_comp <- cbind(SxE_quad_aov1, SxE_quad_aov2) ## compare global models to within-environment models
+SxE_lin_aov3 <- rbind(SxE_out3[[1]][[3]], SxE_out3[[2]][[3]], SxE_out3[[3]][[3]], 
+                     SxE_out3[[4]][[3]],SxE_out3[[5]][[3]])
+
+SxE_quad_aov3 <- rbind(SxE_out3[[1]][[4]], SxE_out3[[2]][[4]], SxE_out3[[3]][[4]], 
+                     SxE_out3[[4]][[4]],SxE_out3[[5]][[4]])
+
+SxE_lin_comp <- cbind(SxE_lin_aov1, SxE_lin_aov2, SxE_lin_aov3) ## compare global models to within-environment models
+SxE_quad_comp <- cbind(SxE_quad_aov1, SxE_quad_aov2, SxE_quad_aov3) ## compare global models to within-environment models
 
 write.csv(SxE_lin_comp, "SxE_res_lin_comp.csv")
 write.csv(SxE_quad_comp, "SxE_res_quad_comp.csv")
@@ -196,7 +211,7 @@ reg_sel_survival <- rbind(sel_out1[[1]][[2]][[2]]$coefficients, ## GH
 
 reg_sel_shoot <- rbind(sel_out1[[1]][[3]][[2]]$coefficients, 
                          sel_out1[[2]][[3]][[2]]$coefficients,
-                         sel_out1[[3]][[3]][[3]]$coefficients, 
+                         sel_out1[[3]][[3]][[2]]$coefficients, 
                          sel_out1[[4]][[3]][[2]]$coefficients,
                          sel_out1[[5]][[3]][[2]]$coefficients)
 
