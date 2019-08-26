@@ -1,0 +1,358 @@
+---
+title: "data_analyses_heritability"
+author: "Rebecca Batstone"
+date: "`r format(Sys.Date())`"
+output: github_document
+editor_options: 
+  chunk_output_type: console
+---
+
+## Load packages
+
+```{r setup, warning=FALSE, message=FALSE}
+# packages
+library("tidyverse") ## includes ggplot2, dplyr, readr, stringr
+library("cowplot") ## paneled graphs
+library("car") ## Anova function
+library("lme4") ## linear mixed models
+```
+
+## Spreadsheets
+
+```{r import_df, warning=FALSE, message=FALSE}
+# created using "data_setup.Rmd"
+date <- format(Sys.Date())
+load(paste0("combined_field_GH_", date, ".Rdata"))
+load("./dataset_cleaned/shoot_cleaned.Rdata")
+load("./dataset_cleaned/survival_cleaned.Rdata")
+load("./dataset_cleaned/leaves_cleaned.Rdata")
+load("./dataset_cleaned/nods_cleaned.Rdata")
+load("./dataset_cleaned/choice_cleaned.Rdata")
+load("./dataset_cleaned/red_nod_cleaned.Rdata")
+load("./dataset_cleaned/flowers_cleaned.Rdata")
+load("./dataset_cleaned/fruits_cleaned.Rdata")
+```
+
+## Models to calculate heritability
+
+```{r herit_mods}
+
+# function (model structure depends on trait and env)
+herit_fun_GH <- function(df, trait){
+  
+  # shoot
+  if (trait == "shoot"){
+    lm_herit <- lmer(log(shoot) ~ (1|line) + (1|position) + block,
+             data = df)
+    lm_herit_dline <- lmer(log(shoot) ~ (1|position) + block,
+             data = df)
+  }
+  
+    # leaf
+    else if (trait == "leaf"){
+    lm_herit <- lmer(sqrt(leaf) ~ (1|line) + (1|position) + block,
+             data = df)
+    lm_herit_dline <- lmer(sqrt(leaf) ~ (1|position) + block,
+             data = df)
+  }
+  
+    # nod
+    else if (trait == "nod"){
+    lm_herit <- lmer(sqrt(nod) ~ (1|line) + (1|position) + block,
+             data = df)
+    lm_herit_dline <- lmer(sqrt(nod) ~ (1|position) + block,
+             data = df)
+  }
+  
+    # choice
+    else if (trait == "choice"){
+    lm_herit <- lmer(choice ~ (1|line) + (1|position) + block,
+             data = df)
+    lm_herit_dline <- lmer(choice ~ (1|position) + block,
+             data = df)
+  }
+
+   # red_nod
+    else if (trait == "totalred"){
+    lm_herit <- lmer(sqrt(totalred) ~ (1|line) + (1|position) + block,
+             data = df)
+    lm_herit_dline <- lmer(sqrt(totalred) ~ (1|position) + block,
+             data = df)
+  }
+  
+  trait.out <- paste(trait)
+  out1 <- ranef(lm_herit)
+  out2 <- VarCorr(lm_herit)
+  out3 <- anova(lm_herit, lm_herit_dline)
+  
+  return(list(trait.out,out1,out2,out3))
+  
+}
+
+herit_fun_F <- function(df, trait){
+  
+    # shoot
+  if (trait == "shoot"){
+    lm_herit <- lmer(log(shoot) ~ (1|line) + (1|diss) + block,
+             data = df)
+    lm_herit_dline <- lmer(log(shoot) ~ (1|diss) + block,
+             data = df)
+  }
+  
+    # leaf
+    else if (trait == "leaf"){
+    lm_herit <- lmer(sqrt(leaf) ~ (1|line) + (1|diss) + block,
+             data = df)
+    lm_herit_dline <- lmer(sqrt(leaf) ~ (1|diss) + block,
+             data = df)
+  }
+  
+    # nod
+    else if (trait == "nod"){
+    lm_herit <- lmer(sqrt(nod) ~ (1|line) + (1|diss) + block,
+             data = df)
+    lm_herit_dline <- lmer(sqrt(nod) ~ (1|diss) + block,
+             data = df)
+  }
+  
+    # fruit
+    else if (trait == "fru"){
+    lm_herit <- lmer(sqrt(fru) ~ (1|line) + (1|diss) + block,
+             data = df)
+    lm_herit_dline <- lmer(sqrt(fru) ~ (1|diss) + block,
+             data = df)
+    }
+  
+  trait.out <- paste(trait)
+  out1 <- ranef(lm_herit)
+  out2 <- VarCorr(lm_herit)
+  out3 <- anova(lm_herit, lm_herit_dline)
+  
+  return(list(trait.out, out1,out2,out3))
+  
+}
+
+# specify environments to loop over
+
+env.list_GH <- c("GH") ## shoot, leaf, nod, choice, totalred
+
+env.list_F1 <- c("plot_1","plot_2","plot_3","plot_4") ## shoot, leaf, nod
+  
+env.list_F2 <- c("plot_1","plot_2","plot_3") ## fruits
+
+# Subset by environment and calculate variable 1 and variable 2
+herit_out_GH <- lapply(env.list_GH, FUN = function(e){
+  
+  df.use <- filter(F_GH_ds,env==e)
+  
+  env.out <- paste(e)
+  shoot.out <- herit_fun_GH(df.use,"shoot")
+  leaf.out <- herit_fun_GH(df.use,"leaf")
+  nod.out <- herit_fun_GH(df.use,"nod")
+  choice.out <- herit_fun_GH(df.use,"choice")
+  totalred.out <- herit_fun_GH(df.use,"totalred")
+  
+  return(list(env.out,shoot.out,leaf.out, nod.out, choice.out,totalred.out))
+  
+})
+
+# Subset by environment and calculate variable 1 and variable 2
+herit_out_F1 <- lapply(env.list_F1, FUN = function(e){
+  
+  df.use <- filter(F_GH_ds,env==e)
+  
+  env.out <- paste(e)
+  shoot.out <- herit_fun_F(df.use,"shoot")
+  leaf.out <- herit_fun_F(df.use,"leaf")
+  nod.out <- herit_fun_F(df.use,"nod")
+  
+  return(list(env.out,shoot.out,leaf.out, nod.out))
+  
+})
+
+# Subset by environment and calculate variable 1 and variable 2
+herit_out_F2 <- lapply(env.list_F2, FUN = function(e){
+  
+  df.use <- filter(F_GH_ds,env==e)
+  
+  env.out <- paste(e)
+  fru.out <- herit_fun_F(df.use,"fru")
+  
+  return(list(env.out,fru.out))
+  
+})
+
+# Combine dfs
+
+# VarCorr of model terms (rand effs)
+herit_vc_comb <-  list(herit_out_GH[[1]][[2]][[3]], herit_out_GH[[1]][[3]][[3]], herit_out_GH[[1]][[4]][[3]],
+                       herit_out_GH[[1]][[5]][[3]], herit_out_GH[[1]][[6]][[3]], ## GH only
+                       herit_out_F1[[1]][[2]][[3]], herit_out_F1[[1]][[3]][[3]], herit_out_F1[[1]][[4]][[3]], ## p1
+                       herit_out_F1[[2]][[2]][[3]], herit_out_F1[[2]][[3]][[3]], herit_out_F1[[2]][[4]][[3]], ## p2
+                       herit_out_F1[[3]][[2]][[3]], herit_out_F1[[3]][[3]][[3]], herit_out_F1[[3]][[4]][[3]], ## p3
+                       herit_out_F1[[4]][[2]][[3]], herit_out_F1[[4]][[3]][[3]], herit_out_F1[[4]][[4]][[3]], ## p4
+                       herit_out_F2[[1]][[2]][[3]], herit_out_F2[[2]][[2]][[3]], herit_out_F2[[3]][[2]][[3]]) ## fruit
+
+herit_vc_comb_df <- lapply(herit_vc_comb, data.frame) ## adds vcov
+herit_vc_comb_rb <- do.call(rbind.data.frame, herit_vc_comb_df)
+herit_vc_comb_rb$env <- c(rep("GH", 5*3), rep("plot_1", 3*3), rep("plot_2", 3*3), rep("plot_3", 3*3), rep("plot_4", 3*3),
+                          rep("plot_1",3), rep("plot_2", 3), rep("plot_3",3))
+herit_vc_comb_rb$trait <- c(rep("shoot",3), rep("leaf",3), rep("nod",3), rep("choice",3), rep("red_nod",3),
+                            rep(c(rep("shoot",3),rep("leaf",3),rep("nod",3)), 4),rep("fruit", 3*3))
+write.csv(herit_vc_comb_rb, "heritability_win_env.csv", row.names = FALSE)
+
+# Chisq test for line term
+herit_cs_comb <- list(herit_out_GH[[1]][[2]][[4]], herit_out_GH[[1]][[3]][[4]], herit_out_GH[[1]][[4]][[4]],
+                       herit_out_GH[[1]][[5]][[4]], herit_out_GH[[1]][[6]][[4]], ## GH only
+                       herit_out_F1[[1]][[2]][[4]], herit_out_F1[[1]][[3]][[4]], herit_out_F1[[1]][[4]][[4]], ## p1
+                       herit_out_F1[[2]][[2]][[4]], herit_out_F1[[2]][[3]][[4]], herit_out_F1[[2]][[4]][[4]], ## p2
+                       herit_out_F1[[3]][[2]][[4]], herit_out_F1[[3]][[3]][[4]], herit_out_F1[[3]][[4]][[4]], ## p3
+                       herit_out_F1[[4]][[2]][[4]], herit_out_F1[[4]][[3]][[4]], herit_out_F1[[4]][[4]][[4]], ## p4
+                       herit_out_F2[[1]][[2]][[4]], herit_out_F2[[2]][[2]][[4]], herit_out_F2[[3]][[2]][[4]]) ## fruit
+
+
+herit_cs_comb_df <- lapply(herit_cs_comb, data.frame) ## adds vcov
+herit_cs_comb_rb <- do.call(rbind.data.frame, herit_cs_comb_df)
+herit_cs_comb_rb$env <- c(rep("GH", 5*2), rep("plot_1", 3*2), rep("plot_2", 3*2), rep("plot_3", 3*2), rep("plot_4", 3*2),
+                          rep("plot_1",2), rep("plot_2", 2), rep("plot_3",2))
+herit_cs_comb_rb$trait <- c(rep("shoot",2), rep("leaf",2), rep("nod",2), rep("choice",2), rep("red_nod",2),
+                            rep(c(rep("shoot",2),rep("leaf",2),rep("nod",2)), 4),rep("fruit", 3*2))
+write.csv(herit_cs_comb_rb, "Chisq_win_env.csv", row.names = FALSE)
+```
+
+## Heritability calc within the GH
+
+```{r herit_GH}
+
+# shoot (calc Vg)
+# GH
+lmm1_GH <- lmer(log(shoot) ~ (1|line) + (1|position) + block,
+                 data = subset(shoot_cc, env == "GH"))
+summary(lmm1_GH)
+lmm1_GH_line <- lmer(log(shoot) ~ (1|position) + block,
+                      data = subset(shoot_cc, env == "GH"))
+chisq_shoot_line_GH <- anova(lmm1_GH, lmm1_GH_line)
+chisq_shoot_line_GH_df <- as.data.frame(chisq_shoot_line_GH)
+chisq_shoot_line_GH_df$trait <- "shoot"
+(vc_GH_shoot <- VarCorr(lmm1_GH))  ## default print method: standard dev and corr
+vc_GH_shoot_df <- as.data.frame(vc_GH_shoot)
+vc_GH_shoot_df$trait <- "shoot"
+
+# survival (calc Vg)
+# GH
+lmm2_GH <- glmer(survival ~ (1|line) + (1|position) + block,
+                  family = binomial,
+                  data = subset(survival_cc, env == "GH"))
+summary(lmm2_GH)
+lmm2_GH_line<- glmer(survival ~ (1|position) + block,
+                      family = binomial,
+                      data = subset(survival_cc, env == "GH"))
+chisq_survival_line_GH <- anova(lmm2_GH, lmm2_GH_line)
+chisq_survival_line_GH_df <- as.data.frame(chisq_survival_line_GH)
+chisq_survival_line_GH_df$trait <- "surv"
+(vc_GH_surv <- VarCorr(lmm2_GH))  ## default print method: standard dev and corr
+vc_GH_surv_df <- as.data.frame(vc_GH_surv)
+vc_GH_surv_df$trait <- "surv"
+
+# leaf (calc Vg)
+# GH
+lmm3_GH <- lmer(sqrt(leaf) ~ (1|line) + (1|position) + block,
+                 data = subset(leaf_cc, env == "GH"))
+summary(lmm3_GH)
+lmm3_GH_line <- lmer(sqrt(leaf) ~ (1|position) + block,
+                      data = subset(leaf_cc, env == "GH"))
+chisq_leaf_line_GH <- anova(lmm3_GH, lmm3_GH_line)
+chisq_leaf_line_GH_df <- as.data.frame(chisq_leaf_line_GH)
+chisq_leaf_line_GH_df$trait <- "leaf"
+(vc_GH_leaf <- VarCorr(lmm3_GH))  ## default print method: standard dev and corr
+vc_GH_leaf_df <- as.data.frame(vc_GH_leaf)
+vc_GH_leaf_df$trait <- "leaf"
+
+# nod (calc Vg)
+# GH
+lmm4_GH <- lmer(sqrt(nod) ~ (1|line) + (1|position) + block,
+                 data = subset(nod_cc, env == "GH"))
+summary(lmm4_GH)
+lmm4_GH_line <- lmer(sqrt(nod) ~ (1|position) + block,
+                      data = subset(nod_cc, env == "GH"))
+chisq_nod_line_GH <- anova(lmm4_GH, lmm4_GH_line)
+chisq_nod_line_GH_df <- as.data.frame(chisq_nod_line_GH)
+chisq_nod_line_GH_df$trait <- "nod"
+(vc_GH_nod <- VarCorr(lmm4_GH))  ## default print method: standard dev and corr
+vc_GH_nod_df <- as.data.frame(vc_GH_nod)
+vc_GH_nod_df$trait <- "nod"
+
+# choice (calc Vg)
+# GH
+lmm5_GH <- lmer(choice ~ (1|line) + (1|position) + block,
+                 data = subset(choice_cc, env == "GH"))
+summary(lmm5_GH)
+lmm5_GH_line <- lmer(choice ~ (1|position) + block,
+                      data = subset(choice_cc, env == "GH"))
+chisq_choice_line_GH <- anova(lmm5_GH, lmm5_GH_line)
+chisq_choice_line_GH_df <- as.data.frame(chisq_choice_line_GH)
+chisq_choice_line_GH_df$trait <- "choice"
+(vc_GH_choice <- VarCorr(lmm5_GH))  ## default print method: standard dev and corr
+vc_GH_choice_df <- as.data.frame(vc_GH_choice)
+vc_GH_choice_df$trait <- "choice"
+
+# pink (calc Vg)
+# GH
+lmm6_GH <- lmer(sqrt(totalred) ~ (1|line) + (1|position) + block,
+                 data = subset(red_nod_cc, env == "GH"))
+summary(lmm6_GH)
+lmm6_GH_line <- lmer(sqrt(totalred) ~ (1|position) + block,
+                      data = subset(red_nod_cc, env == "GH"))
+chisq_pink_line_GH <- anova(lmm6_GH, lmm6_GH_line)
+chisq_pink_line_GH_df <- as.data.frame(chisq_pink_line_GH)
+chisq_pink_line_GH_df$trait <- "pink"
+(vc_GH_pink <- VarCorr(lmm6_GH))  ## default print method: standard dev and corr
+vc_GH_pink_df <- as.data.frame(vc_GH_pink)
+vc_GH_pink_df$trait <- "pink"
+
+# combine chisq
+Chisq_GH_df <- rbind(chisq_shoot_line_GH_df,chisq_survival_line_GH_df, chisq_leaf_line_GH_df,chisq_nod_line_GH_df,
+                  chisq_choice_line_GH_df,chisq_pink_line_GH_df)
+names(Chisq_GH_df) <- c("Df",'AIC', 'BIC','logLik','deviance','Chisq',"Chi.Df","Prob_Chi","trait")
+Chisq_GH_df <- add_column(Chisq_GH_df, env = "GH", .after = 1)
+
+# combine Vg
+Vg_GH <- rbind(vc_GH_shoot_df,vc_GH_surv_df,vc_GH_leaf_df,vc_GH_nod_df,vc_GH_choice_df,vc_GH_pink_df)
+Vg_GH$env <- "GH"
+```
+
+## Heritability calc within the field
+
+```{r herit_field}
+# shoot (calc Vg)
+# plot 1
+lmm1_p1 <- lmer(log(shoot) ~ (1|line) + (1|diss) + block,
+              data = subset(shoot_cc, env %in% env_list[i]))
+summary(cLMM1_p1)
+cLMM1_line_p1 <- glmer(shoot ~ (1|diss) + block,
+                      family=Gamma(link="log"),
+              data = subset(F_GH_ds_shoot.cc, env %in% env_list[i]))
+chisq_shoot_line_p1 <- anova(cLMM1_p1, cLMM1_line_p1)
+# plot 2
+cLMM1_p2<- glmer(shoot ~ (1|line) + (1|diss) + block,
+              data = subset(F_GH_ds_shoot.cc, env == "plot_2"))
+summary(cLMM1_p2)
+cLMM1_p2_line <- glmer(shoot ~ (1|diss) + block,
+              data = subset(F_GH_ds_shoot.cc, env == "plot_2"))
+chisq_shoot_line_p2 <- anova(cLMM1_p2, cLMM1_p2_line)
+# plot 3
+cLMM1_p3<- glmer(shoot ~ (1|line) + (1|diss) + block,
+              data = subset(F_GH_ds_shoot.cc, env == "plot_3"))
+summary(cLMM1_p3)
+cLMM1_p3_line <- glmer(shoot ~ (1|diss) + block,
+              data = subset(F_GH_ds_shoot.cc, env == "plot_3"))
+chisq_shoot_line_p3 <- anova(cLMM1_p3, cLMM1_p3_line)
+# plot 4
+cLMM1_p4<- glmer(shoot ~ (1|line) + (1|diss) + block,
+              data = subset(F_GH_ds_shoot.cc, env == "plot_4"))
+summary(cLMM1_p4)
+cLMM1_p4_line <- glmer(shoot ~ (1|diss) + block,
+              data = subset(F_GH_ds_shoot.cc, env == "plot_4"))
+chisq_shoot_line_p4 <- anova(cLMM1_p4, cLMM1_p4_line)
+
+```
