@@ -25,6 +25,12 @@ load("./G_combined_raw.Rdata")
 load("./GxE_combined_raw.Rdata")
 ```
 
+## Set to effects contrasts 
+
+```{r set_contrasts}
+options(contrasts = rep ("contr.sum", 2)) 
+```
+
 ## Option 1: global means (as used in first version of the manuscript)
 
 ### Calculate rel/stand means
@@ -94,6 +100,62 @@ var.list2 <- c("surv","shoot","leaf","flower","fruit")
 SxE_out3 <- lapply(var.list2, SxE_function, df = GE_comb_raw_sel)
 ```
 
+### Option 4: rel/stand globally for field plants, but separately for GH plants
+
+### Calculate rel/stand means
+
+```{r SxE_win_env}
+# calculate relativized and standardized traits
+GE_comb_raw_sel_GH <- GE_comb_raw %>%
+  filter(env == "GH") %>%
+  mutate(rel_surv = surv/mean(surv, na.rm=TRUE),
+         rel_shoot = shoot/mean(shoot, na.rm=TRUE),
+         rel_leaf = leaf/mean(leaf, na.rm=TRUE),
+         rel_flower = flower/mean(flower, na.rm=TRUE),
+         rel_fruit = fruit/mean(fruit, na.rm=TRUE),
+         stand_nod = (nod - mean(nod, na.rm=TRUE))/sd(nod, na.rm=TRUE)) %>%
+  as.data.frame(.)
+
+GE_comb_raw_sel_field <- GE_comb_raw %>%
+  filter(! env == "GH") %>%
+  mutate(rel_surv = surv/mean(surv, na.rm=TRUE),
+         rel_shoot = shoot/mean(shoot, na.rm=TRUE),
+         rel_leaf = leaf/mean(leaf, na.rm=TRUE),
+         rel_flower = flower/mean(flower, na.rm=TRUE),
+         rel_fruit = fruit/mean(fruit, na.rm=TRUE),
+         stand_nod = (nod - mean(nod, na.rm=TRUE))/sd(nod, na.rm=TRUE)) %>%
+  as.data.frame(.)
+
+GE_comb_raw_sel4 <- rbind(GE_comb_raw_sel_GH, GE_comb_raw_sel_field)
+```
+
+### Option 4: S x E models
+
+```{r op2_SxE_mods}
+SxE_out4 <- lapply(var.list, SxE_function, df = GE_comb_raw_sel4)
+```
+
+### Option 5: standardize nodules globally, relativize fitness within environment 
+
+```{r SxE_win_env}
+# calculate relativized and standardized traits
+GE_comb_raw_sel5 <- GE_comb_raw %>%
+  mutate(stand_nod = (nod - mean(nod, na.rm=TRUE))/sd(nod, na.rm=TRUE)) %>%
+  group_by(env) %>%
+  mutate(rel_surv = surv/mean(surv, na.rm=TRUE),
+         rel_shoot = shoot/mean(shoot, na.rm=TRUE),
+         rel_leaf = leaf/mean(leaf, na.rm=TRUE),
+         rel_flower = flower/mean(flower, na.rm=TRUE),
+         rel_fruit = fruit/mean(fruit, na.rm=TRUE)) %>%
+  as.data.frame(.)
+```
+
+### Option 5: S x E models
+
+```{r op2_SxE_mods}
+SxE_out5 <- lapply(var.list, SxE_function, df = GE_comb_raw_sel5)
+```
+
 ### Combine results
 
 ```{r combine}
@@ -103,20 +165,28 @@ SxE_lin_aov1 <- rbind(SxE_out[[1]][[3]], SxE_out[[2]][[3]], SxE_out[[3]][[3]],
 SxE_quad_aov1 <- rbind(SxE_out[[1]][[4]], SxE_out[[2]][[4]], SxE_out[[3]][[4]], 
                      SxE_out[[4]][[4]],SxE_out[[5]][[4]])
 
+SxE_lin_aov1a <- rbind(SxE_out3[[1]][[3]], SxE_out3[[2]][[3]], SxE_out3[[3]][[3]], 
+                     SxE_out3[[4]][[3]],SxE_out3[[5]][[3]])
+
+SxE_quad_aov1a <- rbind(SxE_out3[[1]][[4]], SxE_out3[[2]][[4]], SxE_out3[[3]][[4]], 
+                     SxE_out3[[4]][[4]],SxE_out3[[5]][[4]])
+
 SxE_lin_aov2 <- rbind(SxE_out2[[1]][[3]], SxE_out2[[2]][[3]], SxE_out2[[3]][[3]], 
                      SxE_out2[[4]][[3]],SxE_out2[[5]][[3]])
 
 SxE_quad_aov2 <- rbind(SxE_out2[[1]][[4]], SxE_out2[[2]][[4]], SxE_out2[[3]][[4]], 
                      SxE_out2[[4]][[4]],SxE_out2[[5]][[4]])
 
-SxE_lin_aov3 <- rbind(SxE_out3[[1]][[3]], SxE_out3[[2]][[3]], SxE_out3[[3]][[3]], 
-                     SxE_out3[[4]][[3]],SxE_out3[[5]][[3]])
+SxE_lin_aov3 <- rbind(SxE_out5[[1]][[3]], SxE_out5[[2]][[3]], SxE_out5[[3]][[3]], 
+                     SxE_out5[[4]][[3]],SxE_out5[[5]][[3]])
 
-SxE_quad_aov3 <- rbind(SxE_out3[[1]][[4]], SxE_out3[[2]][[4]], SxE_out3[[3]][[4]], 
-                     SxE_out3[[4]][[4]],SxE_out3[[5]][[4]])
+SxE_quad_aov3 <- rbind(SxE_out5[[1]][[4]], SxE_out5[[2]][[4]], SxE_out5[[3]][[4]], 
+                     SxE_out5[[4]][[4]],SxE_out5[[5]][[4]])
 
-SxE_lin_comp <- cbind(SxE_lin_aov1, SxE_lin_aov2, SxE_lin_aov3) ## compare global models to within-environment models
-SxE_quad_comp <- cbind(SxE_quad_aov1, SxE_quad_aov2, SxE_quad_aov3) ## compare global models to within-environment models
+SxE_lin_comp <- cbind(SxE_lin_aov1, SxE_lin_aov1a,
+                      SxE_lin_aov2, SxE_lin_aov3) ## compare global models to within-environment models
+SxE_quad_comp <- cbind(SxE_quad_aov1, SxE_quad_aov1a,
+                       SxE_quad_aov2, SxE_quad_aov3) ## compare global models to within-environment models
 
 write.csv(SxE_lin_comp, "SxE_res_lin_comp.csv")
 write.csv(SxE_quad_comp, "SxE_res_quad_comp.csv")

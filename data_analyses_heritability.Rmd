@@ -128,7 +128,7 @@ herit_fun_F <- function(df, trait){
   out2 <- VarCorr(lm_herit)
   out3 <- anova(lm_herit, lm_herit_dline)
   
-  return(list(trait.out, out1,out2,out3))
+  return(list(trait.out,out1,out2,out3))
   
 }
 
@@ -140,7 +140,7 @@ env.list_F1 <- c("plot_1","plot_2","plot_3","plot_4") ## shoot, leaf, nod
   
 env.list_F2 <- c("plot_1","plot_2","plot_3") ## fruits
 
-# Subset by environment and calculate variable 1 and variable 2
+# Subset by environment and calculate variables
 herit_out_GH <- lapply(env.list_GH, FUN = function(e){
   
   df.use <- filter(F_GH_ds,env==e)
@@ -152,11 +152,11 @@ herit_out_GH <- lapply(env.list_GH, FUN = function(e){
   choice.out <- herit_fun_GH(df.use,"choice")
   totalred.out <- herit_fun_GH(df.use,"totalred")
   
-  return(list(env.out,shoot.out,leaf.out, nod.out, choice.out,totalred.out))
+  return(list(env.out,shoot.out,leaf.out,nod.out,choice.out,totalred.out))
   
 })
 
-# Subset by environment and calculate variable 1 and variable 2
+# Subset by environment and calculate variables
 herit_out_F1 <- lapply(env.list_F1, FUN = function(e){
   
   df.use <- filter(F_GH_ds,env==e)
@@ -170,7 +170,7 @@ herit_out_F1 <- lapply(env.list_F1, FUN = function(e){
   
 })
 
-# Subset by environment and calculate variable 1 and variable 2
+# Subset by environment and calculate variables
 herit_out_F2 <- lapply(env.list_F2, FUN = function(e){
   
   df.use <- filter(F_GH_ds,env==e)
