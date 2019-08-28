@@ -1,7 +1,7 @@
 data\_analyses\_heritability
 ================
 Rebecca Batstone
-2019-08-26
+2019-08-28
 
 Load packages
 -------------
@@ -19,8 +19,7 @@ Spreadsheets
 
 ``` r
 # created using "data_setup.Rmd"
-date <- format(Sys.Date())
-load(paste0("combined_field_GH_", date, ".Rdata"))
+load("./combined_field_GH_28Aug2019.Rdata")
 load("./dataset_cleaned/shoot_cleaned.Rdata")
 load("./dataset_cleaned/survival_cleaned.Rdata")
 load("./dataset_cleaned/leaves_cleaned.Rdata")
@@ -126,7 +125,7 @@ herit_fun_F <- function(df, trait){
   out2 <- VarCorr(lm_herit)
   out3 <- anova(lm_herit, lm_herit_dline)
   
-  return(list(trait.out, out1,out2,out3))
+  return(list(trait.out,out1,out2,out3))
   
 }
 
@@ -138,29 +137,28 @@ env.list_F1 <- c("plot_1","plot_2","plot_3","plot_4") ## shoot, leaf, nod
   
 env.list_F2 <- c("plot_1","plot_2","plot_3") ## fruits
 
-# Subset by environment and calculate variable 1 and variable 2
+# Subset by environment and calculate variables
 herit_out_GH <- lapply(env.list_GH, FUN = function(e){
   
-  df.use <- filter(F_GH_ds,env==e)
+  df.shoot <- filter(shoot_cc,env==e)
+  df.leaf <- filter(leaf_cc,env==e)
+  df.nod <- filter(nod_cc,env==e)
+  df.choice <- filter(choice_cc,env==e)
+  df.totalred <- filter(red_nod_cc,env==e)
   
   env.out <- paste(e)
-  shoot.out <- herit_fun_GH(df.use,"shoot")
-  leaf.out <- herit_fun_GH(df.use,"leaf")
-  nod.out <- herit_fun_GH(df.use,"nod")
-  choice.out <- herit_fun_GH(df.use,"choice")
-  totalred.out <- herit_fun_GH(df.use,"totalred")
+  shoot.out <- herit_fun_GH(df.shoot,"shoot")
+  leaf.out <- herit_fun_GH(df.leaf,"leaf")
+  nod.out <- herit_fun_GH(df.nod,"nod")
+  choice.out <- herit_fun_GH(df.choice,"choice")
+  totalred.out <- herit_fun_GH(df.totalred,"totalred")
   
-  return(list(env.out,shoot.out,leaf.out, nod.out, choice.out,totalred.out))
+  return(list(env.out,shoot.out,leaf.out,nod.out,choice.out,totalred.out))
   
 })
 ```
 
     ## refitting model(s) with ML (instead of REML)
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl =
-    ## control$checkConv, : Model failed to converge with max|grad| = 0.00251194
-    ## (tol = 0.002, component 1)
-
     ## refitting model(s) with ML (instead of REML)
     ## refitting model(s) with ML (instead of REML)
 
@@ -172,20 +170,26 @@ herit_out_GH <- lapply(env.list_GH, FUN = function(e){
     ## refitting model(s) with ML (instead of REML)
 
 ``` r
-# Subset by environment and calculate variable 1 and variable 2
+# Subset by environment and calculate variables
 herit_out_F1 <- lapply(env.list_F1, FUN = function(e){
   
-  df.use <- filter(F_GH_ds,env==e)
+  df.shoot <- filter(shoot_cc,env==e)
+  df.leaf <- filter(leaf_cc,env==e)
+  df.nod <- filter(nod_cc,env==e)
   
   env.out <- paste(e)
-  shoot.out <- herit_fun_F(df.use,"shoot")
-  leaf.out <- herit_fun_F(df.use,"leaf")
-  nod.out <- herit_fun_F(df.use,"nod")
+  shoot.out <- herit_fun_F(df.shoot,"shoot")
+  leaf.out <- herit_fun_F(df.leaf,"leaf")
+  nod.out <- herit_fun_F(df.nod,"nod")
   
   return(list(env.out,shoot.out,leaf.out, nod.out))
   
 })
 ```
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl =
+    ## control$checkConv, : Model failed to converge with max|grad| = 0.00204257
+    ## (tol = 0.002, component 1)
 
     ## refitting model(s) with ML (instead of REML)
     ## refitting model(s) with ML (instead of REML)
@@ -208,13 +212,13 @@ herit_out_F1 <- lapply(env.list_F1, FUN = function(e){
     ## refitting model(s) with ML (instead of REML)
 
 ``` r
-# Subset by environment and calculate variable 1 and variable 2
+# Subset by environment and calculate variables
 herit_out_F2 <- lapply(env.list_F2, FUN = function(e){
   
-  df.use <- filter(F_GH_ds,env==e)
+  df.fruit <- filter(fruit_cc,env==e)
   
   env.out <- paste(e)
-  fru.out <- herit_fun_F(df.use,"fru")
+  fru.out <- herit_fun_F(df.fruit,"fru")
   
   return(list(env.out,fru.out))
   

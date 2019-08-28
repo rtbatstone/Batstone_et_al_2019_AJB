@@ -256,13 +256,18 @@ choice_cc <- choice_df[complete.cases(choice_df[ ,c("choice")]),]
 red_nod_cc <- red_nod_df[complete.cases(red_nod_df[ ,c("totalred")]),]
 flower_cc <- flower_df[complete.cases(flower_df[ ,c("flo")]),]
 fruit_cc <- fruit_df[complete.cases(fruit_df[ ,c("fru")]),]
+
+# calculate flower success
+flower_cc$flo_succ <- as.numeric(flower_cc$flo > 0) 
+
+# calculate fruit success
+fruit_cc$fru_succ <- as.numeric(fruit_cc$fru > 0) 
 ```
 
 ## Save files for downstream analyses
 
 ```{r save_dfs}
-date <- format(Sys.Date())
-save(F_GH_ds, file = paste0("combined_field_GH_", date, ".Rdata"))
+save(F_GH_ds, file = "./combined_field_GH_28Aug2019.Rdata")
 save(shoot_cc, file = "./dataset_cleaned/shoot_cleaned.Rdata")
 save(survival_cc, file="./dataset_cleaned/survival_cleaned.Rdata")
 save(leaf_cc, file="./dataset_cleaned/leaves_cleaned.Rdata")

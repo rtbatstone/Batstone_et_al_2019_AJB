@@ -18,7 +18,9 @@ library("car") ## Anova function
 
 ## Load raw means
 
-```{r save}
+```{r load_dfs}
+# created using "data_analyses_raw_means.Rmd"
+
 # mean across environments
 load("./G_combined_raw.Rdata")
 ## mean within each environment:
@@ -35,14 +37,15 @@ options(contrasts = rep ("contr.sum", 2))
 
 ### Calculate rel/stand means
 
-```{r SxE_global}
+```{r op1_means}
 # calculate relativized and standardized traits
 GE_comb_raw_sel <- GE_comb_raw %>%
   mutate(rel_surv = surv/mean(surv, na.rm=TRUE),
          rel_shoot = shoot/mean(shoot, na.rm=TRUE),
          rel_leaf = leaf/mean(leaf, na.rm=TRUE),
-         rel_flower = flower/mean(flower, na.rm=TRUE),
-         rel_fruit = fruit/mean(fruit, na.rm=TRUE),
+         rel_flower = flower_succ/mean(flower_succ, na.rm=TRUE),
+         rel_fruit = fruits/mean(fruits, na.rm=TRUE),
+         rel_fruit_succ = fruit_succ/mean(fruit_succ, na.rm=TRUE),
          stand_nod = (nod - mean(nod, na.rm=TRUE))/sd(nod, na.rm=TRUE)) %>%
   as.data.frame(.)
 ```
@@ -64,7 +67,7 @@ SxE_function <- function(df, trait){
  }
  
 # specify vars to loop over
-var.list <- c("rel_surv","rel_shoot","rel_leaf","rel_flower","rel_fruit")
+var.list <- c("rel_surv","rel_shoot","rel_leaf","rel_flower","rel_fruit","rel_fruit_succ")
  
 SxE_out <- lapply(var.list, SxE_function, df = GE_comb_raw_sel)
 ```
@@ -73,15 +76,16 @@ SxE_out <- lapply(var.list, SxE_function, df = GE_comb_raw_sel)
 
 ### Calculate rel/stand means
 
-```{r SxE_win_env}
+```{r op2_means}
 # calculate relativized and standardized traits
 GE_comb_raw_sel2 <- GE_comb_raw %>%
   group_by(env) %>%
   mutate(rel_surv = surv/mean(surv, na.rm=TRUE),
          rel_shoot = shoot/mean(shoot, na.rm=TRUE),
          rel_leaf = leaf/mean(leaf, na.rm=TRUE),
-         rel_flower = flower/mean(flower, na.rm=TRUE),
-         rel_fruit = fruit/mean(fruit, na.rm=TRUE),
+         rel_flower = flower_succ/mean(flower_succ, na.rm=TRUE),
+         rel_fruit = fruits/mean(fruits, na.rm=TRUE),
+         rel_fruit_succ = fruit_succ/mean(fruit_succ, na.rm=TRUE),
          stand_nod = (nod - mean(nod, na.rm=TRUE))/sd(nod, na.rm=TRUE)) %>%
   as.data.frame(.)
 ```
@@ -96,7 +100,7 @@ SxE_out2 <- lapply(var.list, SxE_function, df = GE_comb_raw_sel2)
 
 ```{r op3_SxE_mods}
 # new var list (absolute fitness values
-var.list2 <- c("surv","shoot","leaf","flower","fruit")
+var.list2 <- c("surv","shoot","leaf","flower_succ","fruits","fruit_succ")
 SxE_out3 <- lapply(var.list2, SxE_function, df = GE_comb_raw_sel)
 ```
 
@@ -104,15 +108,16 @@ SxE_out3 <- lapply(var.list2, SxE_function, df = GE_comb_raw_sel)
 
 ### Calculate rel/stand means
 
-```{r SxE_win_env}
+```{r op4_means}
 # calculate relativized and standardized traits
 GE_comb_raw_sel_GH <- GE_comb_raw %>%
   filter(env == "GH") %>%
   mutate(rel_surv = surv/mean(surv, na.rm=TRUE),
          rel_shoot = shoot/mean(shoot, na.rm=TRUE),
          rel_leaf = leaf/mean(leaf, na.rm=TRUE),
-         rel_flower = flower/mean(flower, na.rm=TRUE),
-         rel_fruit = fruit/mean(fruit, na.rm=TRUE),
+         rel_flower = flower_succ/mean(flower_succ, na.rm=TRUE),
+         rel_fruit = fruits/mean(fruits, na.rm=TRUE),
+         rel_fruit_succ = fruit_succ/mean(fruit_succ, na.rm=TRUE),
          stand_nod = (nod - mean(nod, na.rm=TRUE))/sd(nod, na.rm=TRUE)) %>%
   as.data.frame(.)
 
@@ -121,8 +126,9 @@ GE_comb_raw_sel_field <- GE_comb_raw %>%
   mutate(rel_surv = surv/mean(surv, na.rm=TRUE),
          rel_shoot = shoot/mean(shoot, na.rm=TRUE),
          rel_leaf = leaf/mean(leaf, na.rm=TRUE),
-         rel_flower = flower/mean(flower, na.rm=TRUE),
-         rel_fruit = fruit/mean(fruit, na.rm=TRUE),
+         rel_flower = flower_succ/mean(flower_succ, na.rm=TRUE),
+         rel_fruit = fruits/mean(fruits, na.rm=TRUE),
+         rel_fruit_succ = fruit_succ/mean(fruit_succ, na.rm=TRUE),
          stand_nod = (nod - mean(nod, na.rm=TRUE))/sd(nod, na.rm=TRUE)) %>%
   as.data.frame(.)
 
@@ -131,13 +137,13 @@ GE_comb_raw_sel4 <- rbind(GE_comb_raw_sel_GH, GE_comb_raw_sel_field)
 
 ### Option 4: S x E models
 
-```{r op2_SxE_mods}
+```{r op4_SxE_mods}
 SxE_out4 <- lapply(var.list, SxE_function, df = GE_comb_raw_sel4)
 ```
 
 ### Option 5: standardize nodules globally, relativize fitness within environment 
 
-```{r SxE_win_env}
+```{r op5_means}
 # calculate relativized and standardized traits
 GE_comb_raw_sel5 <- GE_comb_raw %>%
   mutate(stand_nod = (nod - mean(nod, na.rm=TRUE))/sd(nod, na.rm=TRUE)) %>%
@@ -145,14 +151,15 @@ GE_comb_raw_sel5 <- GE_comb_raw %>%
   mutate(rel_surv = surv/mean(surv, na.rm=TRUE),
          rel_shoot = shoot/mean(shoot, na.rm=TRUE),
          rel_leaf = leaf/mean(leaf, na.rm=TRUE),
-         rel_flower = flower/mean(flower, na.rm=TRUE),
-         rel_fruit = fruit/mean(fruit, na.rm=TRUE)) %>%
+         rel_flower = flower_succ/mean(flower_succ, na.rm=TRUE),
+         rel_fruit = fruits/mean(fruits, na.rm=TRUE),
+         rel_fruit_succ = fruit_succ/mean(fruit_succ, na.rm=TRUE)) %>%
   as.data.frame(.)
 ```
 
 ### Option 5: S x E models
 
-```{r op2_SxE_mods}
+```{r op5_SxE_mods}
 SxE_out5 <- lapply(var.list, SxE_function, df = GE_comb_raw_sel5)
 ```
 
@@ -160,28 +167,28 @@ SxE_out5 <- lapply(var.list, SxE_function, df = GE_comb_raw_sel5)
 
 ```{r combine}
 SxE_lin_aov1 <- rbind(SxE_out[[1]][[3]], SxE_out[[2]][[3]], SxE_out[[3]][[3]], 
-                     SxE_out[[4]][[3]],SxE_out[[5]][[3]])
+                     SxE_out[[4]][[3]],SxE_out[[5]][[3]],SxE_out[[6]][[3]])
 
 SxE_quad_aov1 <- rbind(SxE_out[[1]][[4]], SxE_out[[2]][[4]], SxE_out[[3]][[4]], 
-                     SxE_out[[4]][[4]],SxE_out[[5]][[4]])
+                     SxE_out[[4]][[4]],SxE_out[[5]][[4]], SxE_out[[6]][[4]])
 
 SxE_lin_aov1a <- rbind(SxE_out3[[1]][[3]], SxE_out3[[2]][[3]], SxE_out3[[3]][[3]], 
-                     SxE_out3[[4]][[3]],SxE_out3[[5]][[3]])
+                     SxE_out3[[4]][[3]],SxE_out3[[5]][[3]], SxE_out3[[6]][[3]])
 
 SxE_quad_aov1a <- rbind(SxE_out3[[1]][[4]], SxE_out3[[2]][[4]], SxE_out3[[3]][[4]], 
-                     SxE_out3[[4]][[4]],SxE_out3[[5]][[4]])
+                     SxE_out3[[4]][[4]],SxE_out3[[5]][[4]], SxE_out3[[6]][[4]])
 
 SxE_lin_aov2 <- rbind(SxE_out2[[1]][[3]], SxE_out2[[2]][[3]], SxE_out2[[3]][[3]], 
-                     SxE_out2[[4]][[3]],SxE_out2[[5]][[3]])
+                     SxE_out2[[4]][[3]],SxE_out2[[5]][[3]], SxE_out2[[6]][[3]])
 
 SxE_quad_aov2 <- rbind(SxE_out2[[1]][[4]], SxE_out2[[2]][[4]], SxE_out2[[3]][[4]], 
-                     SxE_out2[[4]][[4]],SxE_out2[[5]][[4]])
+                     SxE_out2[[4]][[4]],SxE_out2[[5]][[4]], SxE_out2[[6]][[4]])
 
 SxE_lin_aov3 <- rbind(SxE_out5[[1]][[3]], SxE_out5[[2]][[3]], SxE_out5[[3]][[3]], 
-                     SxE_out5[[4]][[3]],SxE_out5[[5]][[3]])
+                     SxE_out5[[4]][[3]],SxE_out5[[5]][[3]], SxE_out5[[6]][[3]])
 
 SxE_quad_aov3 <- rbind(SxE_out5[[1]][[4]], SxE_out5[[2]][[4]], SxE_out5[[3]][[4]], 
-                     SxE_out5[[4]][[4]],SxE_out5[[5]][[4]])
+                     SxE_out5[[4]][[4]],SxE_out5[[5]][[4]], SxE_out5[[6]][[4]])
 
 SxE_lin_comp <- cbind(SxE_lin_aov1, SxE_lin_aov1a,
                       SxE_lin_aov2, SxE_lin_aov3) ## compare global models to within-environment models
@@ -234,9 +241,10 @@ sel_out2 <- lapply(env.list2, FUN = function(e){
   df.use <- filter(GE_comb_raw_sel, env==e)
   flower.out <- sel_win_env_function(df.use, var.list[4])
   fruit.out <- sel_win_env_function(df.use, var.list[5])
+  fruit_succ.out <- sel_win_env_function(df.use, var.list[6])
   env <- print(paste(e))  
   
-  return(list(env, flower.out, fruit.out))
+  return(list(env, flower.out, fruit.out, fruit_succ.out))
 })
 
 # Combine dfs (ANOVA res)
@@ -267,10 +275,14 @@ ANOVA_sel_fruit <- rbind(sel_out2[[1]][[3]][[4]],sel_out2[[1]][[3]][[5]],
                          sel_out2[[2]][[3]][[4]],sel_out2[[2]][[3]][[5]],
                          sel_out2[[3]][[3]][[4]],sel_out2[[3]][[3]][[5]])
 
+ANOVA_sel_fruit_succ <- rbind(sel_out2[[1]][[4]][[4]],sel_out2[[1]][[4]][[5]], 
+                         sel_out2[[2]][[4]][[4]],sel_out2[[2]][[4]][[5]],
+                         sel_out2[[3]][[4]][[4]],sel_out2[[3]][[4]][[5]])
+
 ANOVA_sel_comb1 <- cbind(ANOVA_sel_survival, ANOVA_sel_shoot, ANOVA_sel_leaf)
-ANOVA_sel_comb2 <- cbind(ANOVA_sel_flower, ANOVA_sel_fruit)
-write.csv(ANOVA_sel_comb1, "ANOVA_sel1_win_env.csv")
-write.csv(ANOVA_sel_comb2, "ANOVA_sel2_win_env.csv")
+ANOVA_sel_comb2 <- cbind(ANOVA_sel_flower, ANOVA_sel_fruit, ANOVA_sel_fruit_succ)
+ANOVA_sel_all <- rbind(ANOVA_sel_comb1, ANOVA_sel_comb2)
+write.csv(ANOVA_sel_all, "ANOVA_sel_win_env.csv")
 
 # combine dfs (regression res)
 reg_sel_survival <- rbind(sel_out1[[1]][[2]][[2]]$coefficients, ## GH
@@ -299,8 +311,12 @@ reg_sel_fruit <- rbind(sel_out2[[1]][[3]][[2]]$coefficients,
                          sel_out2[[2]][[3]][[2]]$coefficients,
                          sel_out2[[3]][[3]][[2]]$coefficients)
 
+reg_sel_fruit_succ <- rbind(sel_out2[[1]][[4]][[2]]$coefficients, 
+                         sel_out2[[2]][[4]][[2]]$coefficients,
+                         sel_out2[[3]][[4]][[2]]$coefficients)
+
 reg_sel_comb1 <- cbind(reg_sel_survival, reg_sel_shoot, reg_sel_leaf)
-reg_sel_comb2 <- cbind(reg_sel_flower, reg_sel_fruit)
-write.csv(reg_sel_comb1, "reg_sel1_win_env.csv")
-write.csv(reg_sel_comb2, "reg_sel2_win_env.csv")
+reg_sel_comb2 <- cbind(reg_sel_flower, reg_sel_fruit, reg_sel_fruit_succ)
+reg_sel_all <- rbind(reg_sel_comb1, reg_sel_comb2)
+write.csv(reg_sel_all, "reg_sel_win_env.csv")
 ```

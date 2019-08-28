@@ -1,7 +1,7 @@
 data\_analyses\_GxE
 ================
 Rebecca Batstone
-2019-08-21
+2019-08-28
 
 Load packages
 -------------
@@ -208,7 +208,7 @@ testDispersion(simuOut_glm1) ## NS
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-(joint_tests(glm1)) ## all terms sig. 
+(jt_shoot <- joint_tests(glm1)) ## all terms sig. 
 ```
 
     ##  model term df1 df2 F.ratio p.value
@@ -406,15 +406,15 @@ testDispersion(simuOut_glm2) ## NS
 
 ``` r
 # firth correction
-glm_firth <- logistf(survival ~ env * line, data = survival_cc)
+glm_firth_surv <- logistf(survival ~ env * line, data = survival_cc)
 
-glm_firth2 <- logistf(survival ~ env + line, data = survival_cc)
+glm_firth2_surv <- logistf(survival ~ env + line, data = survival_cc)
 
-glm_firth3 <- logistf(survival ~ env, data = survival_cc)
+glm_firth3_surv <- logistf(survival ~ env, data = survival_cc)
 
-glm_firth4 <- logistf(survival ~ line, data = survival_cc)
+glm_firth4_surv <- logistf(survival ~ line, data = survival_cc)
 
-(firth_anova_int <- anova(glm_firth, glm_firth2, method = "PLR")) ## NS interaction
+(firth_anova_int_surv <- anova(glm_firth_surv, glm_firth2_surv, method = "PLR")) ## NS interaction
 ```
 
     ## Comparison of logistf models:
@@ -426,7 +426,7 @@ glm_firth4 <- logistf(survival ~ line, data = survival_cc)
     ## Chi-Squared:  116.5909   df= 116   P= 0.467125
 
 ``` r
-(firth_anova_line <- anova(glm_firth2, glm_firth3, method = "PLR")) ## sig ME of line
+(firth_anova_line_surv <- anova(glm_firth2_surv, glm_firth3_surv, method = "PLR")) ## sig ME of line
 ```
 
     ## Comparison of logistf models:
@@ -438,7 +438,7 @@ glm_firth4 <- logistf(survival ~ line, data = survival_cc)
     ## Chi-Squared:  44.20323   df= 29   P= 0.03510493
 
 ``` r
-(firth_anova_env <- anova(glm_firth2, glm_firth4, method = "PLR")) ## sig ME of env
+(firth_anova_env_surv <- anova(glm_firth2_surv, glm_firth4_surv, method = "PLR")) ## sig ME of env
 ```
 
     ## Comparison of logistf models:
@@ -604,7 +604,7 @@ testDispersion(simOut_glm3) ## NS
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-(joint_tests(glm3)) ## all terms sig.
+(jt_leaf <- joint_tests(glm3)) ## all terms sig.
 ```
 
     ##  model term df1 df2 F.ratio p.value
@@ -771,7 +771,7 @@ testDispersion(simOut_glm4) ## NS
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-(joint_tests(glm4)) ## close to Anova results
+(jt_nod <- joint_tests(glm4)) ## close to Anova results
 ```
 
     ##  model term df1 df2 F.ratio p.value
@@ -1141,15 +1141,15 @@ testDispersion(simOut_glm7) ## NS
 
 ``` r
 # firth correction
-glm7_firth <- logistf(flo_succ ~ env * line, data = subset(flower_cc, survival > 0))
+glm7_firth_flo <- logistf(flo_succ ~ env * line, data = subset(flower_cc, survival > 0))
 
-glm7_firth2 <- logistf(flo_succ ~ env + line, data = subset(flower_cc, survival > 0))
+glm7_firth2_flo <- logistf(flo_succ ~ env + line, data = subset(flower_cc, survival > 0))
 
-glm7_firth3 <- logistf(flo_succ ~ env, data = subset(flower_cc, survival > 0))
+glm7_firth3_flo <- logistf(flo_succ ~ env, data = subset(flower_cc, survival > 0))
 
-glm7_firth4 <- logistf(flo_succ ~ line, data = subset(flower_cc, survival > 0))
+glm7_firth4_flo <- logistf(flo_succ ~ line, data = subset(flower_cc, survival > 0))
 
-(firth_anova_int <- anova(glm7_firth, glm7_firth2, method = "PLR")) ## NS interaction
+(firth_anova_int_flo <- anova(glm7_firth_flo, glm7_firth2_flo, method = "PLR")) ## NS interaction
 ```
 
     ## Comparison of logistf models:
@@ -1161,7 +1161,7 @@ glm7_firth4 <- logistf(flo_succ ~ line, data = subset(flower_cc, survival > 0))
     ## Chi-Squared:  1.282415   df= 54   P= 1
 
 ``` r
-(firth_anova_line <- anova(glm7_firth2, glm7_firth3, method = "PLR")) ## sig ME of line
+(firth_anova_line_flo <- anova(glm7_firth2_flo, glm7_firth3_flo, method = "PLR")) ## sig ME of line
 ```
 
     ## Comparison of logistf models:
@@ -1173,7 +1173,7 @@ glm7_firth4 <- logistf(flo_succ ~ line, data = subset(flower_cc, survival > 0))
     ## Chi-Squared:  44.5018   df= 27   P= 0.01834046
 
 ``` r
-(firth_anova_env <- anova(glm7_firth2, glm7_firth4, method = "PLR")) ## sig ME of env
+(firth_anova_env_flo <- anova(glm7_firth2_flo, glm7_firth4_flo, method = "PLR")) ## sig ME of env
 ```
 
     ## Comparison of logistf models:
@@ -1353,7 +1353,7 @@ testDispersion(simOut_glm8_succ) ## NS
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-(joint_tests(lm8_nz)) ## matches Anova results
+(joint_tests(lm8_nz)) ## matches Anova type III results (non-estimability)
 ```
 
     ##  model term df1 df2 F.ratio p.value note
@@ -1377,7 +1377,7 @@ testDispersion(simOut_glm8_succ) ## NS
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-(joint_tests(glm8_nz)) ## matches Anova results
+(jt_fruit <- joint_tests(glm8_nz)) ## matches Anova type III results (non-estimability)
 ```
 
     ##  model term df1 df2 F.ratio p.value note
@@ -1451,15 +1451,15 @@ testDispersion(simOut_glm8_succ) ## NS
 
 ``` r
 # firth correction
-glm8_firth <- logistf(fru_succ ~ env * line, data = fruit_cc)
+glm8_firth_fru <- logistf(fru_succ ~ env * line, data = fruit_cc)
 
-glm8_firth2 <- logistf(fru_succ ~ env + line, data = fruit_cc)
+glm8_firth2_fru <- logistf(fru_succ ~ env + line, data = fruit_cc)
 
-glm8_firth3 <- logistf(fru_succ ~ env, data = fruit_cc)
+glm8_firth3_fru <- logistf(fru_succ ~ env, data = fruit_cc)
 
-glm8_firth4 <- logistf(fru_succ ~ line, data = fruit_cc)
+glm8_firth4_fru <- logistf(fru_succ ~ line, data = fruit_cc)
 
-(firth_anova_int <- anova(glm8_firth, glm8_firth2, method = "PLR")) ## NS interaction
+(firth_anova_int_fru <- anova(glm8_firth_fru, glm8_firth2_fru, method = "PLR")) ## NS interaction
 ```
 
     ## Comparison of logistf models:
@@ -1471,7 +1471,7 @@ glm8_firth4 <- logistf(fru_succ ~ line, data = fruit_cc)
     ## Chi-Squared:  15.23051   df= 54   P= 1
 
 ``` r
-(firth_anova_line <- anova(glm8_firth2, glm8_firth3, method = "PLR")) ## marg sig ME of line
+(firth_anova_line_fru <- anova(glm8_firth2_fru, glm8_firth3_fru, method = "PLR")) ## marg sig ME of line
 ```
 
     ## Comparison of logistf models:
@@ -1483,7 +1483,7 @@ glm8_firth4 <- logistf(fru_succ ~ line, data = fruit_cc)
     ## Chi-Squared:  39.25284   df= 27   P= 0.06008161
 
 ``` r
-(firth_anova_env <- anova(glm8_firth2, glm8_firth4, method = "PLR")) ## sig ME of env
+(firth_anova_env_fru <- anova(glm8_firth2_fru, glm8_firth4_fru, method = "PLR")) ## sig ME of env
 ```
 
     ## Comparison of logistf models:
@@ -1493,3 +1493,16 @@ glm8_firth4 <- logistf(fru_succ ~ line, data = fruit_cc)
     ## 
     ## Method:  PLR 
     ## Chi-Squared:  31.14494   df= 2   P= 1.725688e-07
+
+combine dfs
+-----------
+
+``` r
+non_binary_comb <- rbind(jt_shoot, jt_leaf, jt_nod, jt_fruit[,-c(6)])
+binary_comb <- rbind(firth_anova_env_surv, firth_anova_line_surv, firth_anova_int_surv, 
+                     firth_anova_env_flo, firth_anova_line_flo, firth_anova_int_flo, 
+                     firth_anova_env_fru, firth_anova_line_fru, firth_anova_int_fru)
+
+write.csv(non_binary_comb, "GxE_non-binary.csv")
+write.csv(binary_comb, "GxE_binary.csv")
+```

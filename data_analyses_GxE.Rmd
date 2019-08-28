@@ -28,8 +28,7 @@ library("brglm2") ## check separation issue
 
 ```{r import_df, warning=FALSE, message=FALSE}
 # created using "data_setup.Rmd"
-date <- format(Sys.Date())
-load(paste0("combined_field_GH_", date, ".Rdata"))
+load("./combined_field_GH_28Aug2019.Rdata")
 load("./dataset_cleaned/shoot_cleaned.Rdata")
 load("./dataset_cleaned/survival_cleaned.Rdata")
 load("./dataset_cleaned/leaves_cleaned.Rdata")
@@ -92,7 +91,7 @@ testDispersion(simuOut_glm1) ## NS
 (ANODEV_lm_shoot <- Anova(lm1, type = 2)) ## NS interaction, type 2 used
 (joint_tests(lm1)) # matches Anova results
 (ANODEV_shoot <- Anova(glm1, type = 2)) ## error if type 3, type 2 used
-(joint_tests(glm1)) ## all terms sig. 
+(jt_shoot <- joint_tests(glm1)) ## all terms sig. 
 ```
 
 ### glm2: survival
@@ -142,19 +141,19 @@ testDispersion(simuOut_glm2) ## NS
             method = "detect_separation")) ## Inf detected
 
 # firth correction
-glm_firth <- logistf(survival ~ env * line, data = survival_cc)
+glm_firth_surv <- logistf(survival ~ env * line, data = survival_cc)
 
-glm_firth2 <- logistf(survival ~ env + line, data = survival_cc)
+glm_firth2_surv <- logistf(survival ~ env + line, data = survival_cc)
 
-glm_firth3 <- logistf(survival ~ env, data = survival_cc)
+glm_firth3_surv <- logistf(survival ~ env, data = survival_cc)
 
-glm_firth4 <- logistf(survival ~ line, data = survival_cc)
+glm_firth4_surv <- logistf(survival ~ line, data = survival_cc)
 
-(firth_anova_int <- anova(glm_firth, glm_firth2, method = "PLR")) ## NS interaction
+(firth_anova_int_surv <- anova(glm_firth_surv, glm_firth2_surv, method = "PLR")) ## NS interaction
 
-(firth_anova_line <- anova(glm_firth2, glm_firth3, method = "PLR")) ## sig ME of line
+(firth_anova_line_surv <- anova(glm_firth2_surv, glm_firth3_surv, method = "PLR")) ## sig ME of line
 
-(firth_anova_env <- anova(glm_firth2, glm_firth4, method = "PLR")) ## sig ME of env
+(firth_anova_env_surv <- anova(glm_firth2_surv, glm_firth4_surv, method = "PLR")) ## sig ME of env
 ```
 
 ### glm3: leaf
@@ -200,7 +199,7 @@ testDispersion(simOut_glm3) ## NS
 (ANODEV_lm_leaf <- Anova(lm3, type = 2)) ## NS interaction, type 2 used
 (joint_tests(lm3)) # matches Anova results
 (ANODEV_glm_leaf <- Anova(glm3, type = 2)) ## error if set to type 3, type 2 used
-(joint_tests(glm3)) ## all terms sig.
+(jt_leaf <- joint_tests(glm3)) ## all terms sig.
 ```
 
 ### glm4: nod
@@ -247,7 +246,7 @@ testDispersion(simOut_glm4) ## NS
 (ANODEV_lm_nod <- Anova(lm4, type = 2)) ## NS interaction, type 2 used
 (joint_tests(lm4)) ## matches Anova results
 (ANODEV_glm_nod <- Anova(glm4, type = 3)) ## non-convergence warning
-(joint_tests(glm4)) ## close to Anova results
+(jt_nod <- joint_tests(glm4)) ## close to Anova results
 ```
 
 ### glm5: choice
@@ -343,9 +342,6 @@ fit.norm$aic
 fit.nbinom$aic 
 ## nbinom, poisson, norm (best to worst)
 
-# calculate flower success
-flower_cc$flo_succ <- as.numeric(flower_cc$flo > 0) 
-
 # model
 glm7 <- glm(flo_succ ~ env * line,
              family= binomial,
@@ -367,19 +363,19 @@ testDispersion(simOut_glm7) ## NS
             method = "detect_separation")) ## Inf detected
 
 # firth correction
-glm7_firth <- logistf(flo_succ ~ env * line, data = subset(flower_cc, survival > 0))
+glm7_firth_flo <- logistf(flo_succ ~ env * line, data = subset(flower_cc, survival > 0))
 
-glm7_firth2 <- logistf(flo_succ ~ env + line, data = subset(flower_cc, survival > 0))
+glm7_firth2_flo <- logistf(flo_succ ~ env + line, data = subset(flower_cc, survival > 0))
 
-glm7_firth3 <- logistf(flo_succ ~ env, data = subset(flower_cc, survival > 0))
+glm7_firth3_flo <- logistf(flo_succ ~ env, data = subset(flower_cc, survival > 0))
 
-glm7_firth4 <- logistf(flo_succ ~ line, data = subset(flower_cc, survival > 0))
+glm7_firth4_flo <- logistf(flo_succ ~ line, data = subset(flower_cc, survival > 0))
 
-(firth_anova_int <- anova(glm7_firth, glm7_firth2, method = "PLR")) ## NS interaction
+(firth_anova_int_flo <- anova(glm7_firth_flo, glm7_firth2_flo, method = "PLR")) ## NS interaction
 
-(firth_anova_line <- anova(glm7_firth2, glm7_firth3, method = "PLR")) ## sig ME of line
+(firth_anova_line_flo <- anova(glm7_firth2_flo, glm7_firth3_flo, method = "PLR")) ## sig ME of line
 
-(firth_anova_env <- anova(glm7_firth2, glm7_firth4, method = "PLR")) ## sig ME of env
+(firth_anova_env_flo <- anova(glm7_firth2_flo, glm7_firth4_flo, method = "PLR")) ## sig ME of env
 ```
 
 ### glm8: fruit
@@ -410,9 +406,6 @@ fit.norm$aic
 fit.nbinom$aic 
 ## nbinom, norm, poisson  (best to worst)
 
-# calculate fruit success
-fruit_cc$fru_succ <- as.numeric(fruit_cc$fru > 0) 
-
 # models
 lm8_nz <- lm(sqrt(fru) ~ env * line, 
               data = subset(fruit_cc, fru > 0))
@@ -437,9 +430,10 @@ testDispersion(simOut_glm8_succ) ## NS
 
 # model summaries
 (ANODEV_lm_fru_nz <- Anova(lm8_nz, type = 2)) ## singular, cannot assess type 3, type 2 used
-(joint_tests(lm8_nz)) ## matches Anova results
+(joint_tests(lm8_nz)) ## matches Anova type III results (non-estimability)
+
 (ANODEV_glm_fru_nz <- Anova(glm8_nz, type = 2)) ## singular, cannot assess type 3, type 2 used
-(joint_tests(glm8_nz)) ## matches Anova results
+(jt_fruit <- joint_tests(glm8_nz)) ## matches Anova type III results (non-estimability)
 
 (ANODEV_fru_succ <- Anova(glm8_succ, type = 3)) ## no terms sig., fitted probability warning issued
 (joint_tests(glm8_succ)) ## close to Anova results
@@ -451,18 +445,29 @@ testDispersion(simOut_glm8_succ) ## NS
             method = "detect_separation")) ## Inf detected
 
 # firth correction
-glm8_firth <- logistf(fru_succ ~ env * line, data = fruit_cc)
+glm8_firth_fru <- logistf(fru_succ ~ env * line, data = fruit_cc)
 
-glm8_firth2 <- logistf(fru_succ ~ env + line, data = fruit_cc)
+glm8_firth2_fru <- logistf(fru_succ ~ env + line, data = fruit_cc)
 
-glm8_firth3 <- logistf(fru_succ ~ env, data = fruit_cc)
+glm8_firth3_fru <- logistf(fru_succ ~ env, data = fruit_cc)
 
-glm8_firth4 <- logistf(fru_succ ~ line, data = fruit_cc)
+glm8_firth4_fru <- logistf(fru_succ ~ line, data = fruit_cc)
 
-(firth_anova_int <- anova(glm8_firth, glm8_firth2, method = "PLR")) ## NS interaction
+(firth_anova_int_fru <- anova(glm8_firth_fru, glm8_firth2_fru, method = "PLR")) ## NS interaction
 
-(firth_anova_line <- anova(glm8_firth2, glm8_firth3, method = "PLR")) ## marg sig ME of line
+(firth_anova_line_fru <- anova(glm8_firth2_fru, glm8_firth3_fru, method = "PLR")) ## marg sig ME of line
 
-(firth_anova_env <- anova(glm8_firth2, glm8_firth4, method = "PLR")) ## sig ME of env
+(firth_anova_env_fru <- anova(glm8_firth2_fru, glm8_firth4_fru, method = "PLR")) ## sig ME of env
 ```
 
+## combine dfs
+
+```{r combine}
+non_binary_comb <- rbind(jt_shoot, jt_leaf, jt_nod, jt_fruit[,-c(6)])
+binary_comb <- rbind(firth_anova_env_surv, firth_anova_line_surv, firth_anova_int_surv, 
+                     firth_anova_env_flo, firth_anova_line_flo, firth_anova_int_flo, 
+                     firth_anova_env_fru, firth_anova_line_fru, firth_anova_int_fru)
+
+write.csv(non_binary_comb, "GxE_non-binary.csv")
+write.csv(binary_comb, "GxE_binary.csv")
+```

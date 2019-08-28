@@ -21,8 +21,7 @@ library("lme4") ## linear mixed models
 
 ```{r import_df, warning=FALSE, message=FALSE}
 # created using "data_setup.Rmd"
-date <- format(Sys.Date())
-load(paste0("combined_field_GH_", date, ".Rdata"))
+load("./combined_field_GH_28Aug2019.Rdata")
 load("./dataset_cleaned/shoot_cleaned.Rdata")
 load("./dataset_cleaned/survival_cleaned.Rdata")
 load("./dataset_cleaned/leaves_cleaned.Rdata")
@@ -143,14 +142,18 @@ env.list_F2 <- c("plot_1","plot_2","plot_3") ## fruits
 # Subset by environment and calculate variables
 herit_out_GH <- lapply(env.list_GH, FUN = function(e){
   
-  df.use <- filter(F_GH_ds,env==e)
+  df.shoot <- filter(shoot_cc,env==e)
+  df.leaf <- filter(leaf_cc,env==e)
+  df.nod <- filter(nod_cc,env==e)
+  df.choice <- filter(choice_cc,env==e)
+  df.totalred <- filter(red_nod_cc,env==e)
   
   env.out <- paste(e)
-  shoot.out <- herit_fun_GH(df.use,"shoot")
-  leaf.out <- herit_fun_GH(df.use,"leaf")
-  nod.out <- herit_fun_GH(df.use,"nod")
-  choice.out <- herit_fun_GH(df.use,"choice")
-  totalred.out <- herit_fun_GH(df.use,"totalred")
+  shoot.out <- herit_fun_GH(df.shoot,"shoot")
+  leaf.out <- herit_fun_GH(df.leaf,"leaf")
+  nod.out <- herit_fun_GH(df.nod,"nod")
+  choice.out <- herit_fun_GH(df.choice,"choice")
+  totalred.out <- herit_fun_GH(df.totalred,"totalred")
   
   return(list(env.out,shoot.out,leaf.out,nod.out,choice.out,totalred.out))
   
@@ -159,12 +162,14 @@ herit_out_GH <- lapply(env.list_GH, FUN = function(e){
 # Subset by environment and calculate variables
 herit_out_F1 <- lapply(env.list_F1, FUN = function(e){
   
-  df.use <- filter(F_GH_ds,env==e)
+  df.shoot <- filter(shoot_cc,env==e)
+  df.leaf <- filter(leaf_cc,env==e)
+  df.nod <- filter(nod_cc,env==e)
   
   env.out <- paste(e)
-  shoot.out <- herit_fun_F(df.use,"shoot")
-  leaf.out <- herit_fun_F(df.use,"leaf")
-  nod.out <- herit_fun_F(df.use,"nod")
+  shoot.out <- herit_fun_F(df.shoot,"shoot")
+  leaf.out <- herit_fun_F(df.leaf,"leaf")
+  nod.out <- herit_fun_F(df.nod,"nod")
   
   return(list(env.out,shoot.out,leaf.out, nod.out))
   
@@ -173,10 +178,10 @@ herit_out_F1 <- lapply(env.list_F1, FUN = function(e){
 # Subset by environment and calculate variables
 herit_out_F2 <- lapply(env.list_F2, FUN = function(e){
   
-  df.use <- filter(F_GH_ds,env==e)
+  df.fruit <- filter(fruit_cc,env==e)
   
   env.out <- paste(e)
-  fru.out <- herit_fun_F(df.use,"fru")
+  fru.out <- herit_fun_F(df.fruit,"fru")
   
   return(list(env.out,fru.out))
   
