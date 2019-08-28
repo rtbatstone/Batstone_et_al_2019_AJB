@@ -18,7 +18,9 @@ library("car") ## Anova function
 
 ## Load raw means
 
-```{r save}
+```{r load_dfs}
+# created using "data_analyses_raw_means.Rmd"
+
 # mean across environments
 load("./G_combined_raw.Rdata")
 ## mean within each environment:
@@ -35,14 +37,15 @@ options(contrasts = rep ("contr.sum", 2))
 
 ### Calculate rel/stand means
 
-```{r SxE_global}
+```{r op1_means}
 # calculate relativized and standardized traits
 GE_comb_raw_sel <- GE_comb_raw %>%
   mutate(rel_surv = surv/mean(surv, na.rm=TRUE),
          rel_shoot = shoot/mean(shoot, na.rm=TRUE),
          rel_leaf = leaf/mean(leaf, na.rm=TRUE),
-         rel_flower = flower/mean(flower, na.rm=TRUE),
-         rel_fruit = fruit/mean(fruit, na.rm=TRUE),
+         rel_flower = flower_succ/mean(flower_succ, na.rm=TRUE),
+         rel_fruit = fruits/mean(fruits, na.rm=TRUE),
+         rel_fruit_succ = fruit_succ/mean(fruit_succ, na.rm=TRUE),
          stand_nod = (nod - mean(nod, na.rm=TRUE))/sd(nod, na.rm=TRUE)) %>%
   as.data.frame(.)
 ```
@@ -64,7 +67,7 @@ SxE_function <- function(df, trait){
  }
  
 # specify vars to loop over
-var.list <- c("rel_surv","rel_shoot","rel_leaf","rel_flower","rel_fruit")
+var.list <- c("rel_surv","rel_shoot","rel_leaf","rel_flower","rel_fruit","rel_fruit_succ")
  
 SxE_out <- lapply(var.list, SxE_function, df = GE_comb_raw_sel)
 ```
@@ -73,15 +76,16 @@ SxE_out <- lapply(var.list, SxE_function, df = GE_comb_raw_sel)
 
 ### Calculate rel/stand means
 
-```{r SxE_win_env}
+```{r op2_means}
 # calculate relativized and standardized traits
 GE_comb_raw_sel2 <- GE_comb_raw %>%
   group_by(env) %>%
   mutate(rel_surv = surv/mean(surv, na.rm=TRUE),
          rel_shoot = shoot/mean(shoot, na.rm=TRUE),
          rel_leaf = leaf/mean(leaf, na.rm=TRUE),
-         rel_flower = flower/mean(flower, na.rm=TRUE),
-         rel_fruit = fruit/mean(fruit, na.rm=TRUE),
+         rel_flower = flower_succ/mean(flower_succ, na.rm=TRUE),
+         rel_fruit = fruits/mean(fruits, na.rm=TRUE),
+         rel_fruit_succ = fruit_succ/mean(fruit_succ, na.rm=TRUE),
          stand_nod = (nod - mean(nod, na.rm=TRUE))/sd(nod, na.rm=TRUE)) %>%
   as.data.frame(.)
 ```
@@ -96,7 +100,7 @@ SxE_out2 <- lapply(var.list, SxE_function, df = GE_comb_raw_sel2)
 
 ```{r op3_SxE_mods}
 # new var list (absolute fitness values
-var.list2 <- c("surv","shoot","leaf","flower","fruit")
+var.list2 <- c("surv","shoot","leaf","flower_succ","fruits","fruit_succ")
 SxE_out3 <- lapply(var.list2, SxE_function, df = GE_comb_raw_sel)
 ```
 
@@ -104,15 +108,16 @@ SxE_out3 <- lapply(var.list2, SxE_function, df = GE_comb_raw_sel)
 
 ### Calculate rel/stand means
 
-```{r SxE_win_env}
+```{r op4_means}
 # calculate relativized and standardized traits
 GE_comb_raw_sel_GH <- GE_comb_raw %>%
   filter(env == "GH") %>%
   mutate(rel_surv = surv/mean(surv, na.rm=TRUE),
          rel_shoot = shoot/mean(shoot, na.rm=TRUE),
          rel_leaf = leaf/mean(leaf, na.rm=TRUE),
-         rel_flower = flower/mean(flower, na.rm=TRUE),
-         rel_fruit = fruit/mean(fruit, na.rm=TRUE),
+         rel_flower = flower_succ/mean(flower_succ, na.rm=TRUE),
+         rel_fruit = fruits/mean(fruits, na.rm=TRUE),
+         rel_fruit_succ = fruit_succ/mean(fruit_succ, na.rm=TRUE),
          stand_nod = (nod - mean(nod, na.rm=TRUE))/sd(nod, na.rm=TRUE)) %>%
   as.data.frame(.)
 
@@ -121,8 +126,9 @@ GE_comb_raw_sel_field <- GE_comb_raw %>%
   mutate(rel_surv = surv/mean(surv, na.rm=TRUE),
          rel_shoot = shoot/mean(shoot, na.rm=TRUE),
          rel_leaf = leaf/mean(leaf, na.rm=TRUE),
-         rel_flower = flower/mean(flower, na.rm=TRUE),
-         rel_fruit = fruit/mean(fruit, na.rm=TRUE),
+         rel_flower = flower_succ/mean(flower_succ, na.rm=TRUE),
+         rel_fruit = fruits/mean(fruits, na.rm=TRUE),
+         rel_fruit_succ = fruit_succ/mean(fruit_succ, na.rm=TRUE),
          stand_nod = (nod - mean(nod, na.rm=TRUE))/sd(nod, na.rm=TRUE)) %>%
   as.data.frame(.)
 
@@ -131,13 +137,13 @@ GE_comb_raw_sel4 <- rbind(GE_comb_raw_sel_GH, GE_comb_raw_sel_field)
 
 ### Option 4: S x E models
 
-```{r op2_SxE_mods}
+```{r op4_SxE_mods}
 SxE_out4 <- lapply(var.list, SxE_function, df = GE_comb_raw_sel4)
 ```
 
 ### Option 5: standardize nodules globally, relativize fitness within environment 
 
-```{r SxE_win_env}
+```{r op5_means}
 # calculate relativized and standardized traits
 GE_comb_raw_sel5 <- GE_comb_raw %>%
   mutate(stand_nod = (nod - mean(nod, na.rm=TRUE))/sd(nod, na.rm=TRUE)) %>%
@@ -145,14 +151,15 @@ GE_comb_raw_sel5 <- GE_comb_raw %>%
   mutate(rel_surv = surv/mean(surv, na.rm=TRUE),
          rel_shoot = shoot/mean(shoot, na.rm=TRUE),
          rel_leaf = leaf/mean(leaf, na.rm=TRUE),
-         rel_flower = flower/mean(flower, na.rm=TRUE),
-         rel_fruit = fruit/mean(fruit, na.rm=TRUE)) %>%
+         rel_flower = flower_succ/mean(flower_succ, na.rm=TRUE),
+         rel_fruit = fruits/mean(fruits, na.rm=TRUE),
+         rel_fruit_succ = fruit_succ/mean(fruit_succ, na.rm=TRUE)) %>%
   as.data.frame(.)
 ```
 
 ### Option 5: S x E models
 
-```{r op2_SxE_mods}
+```{r op5_SxE_mods}
 SxE_out5 <- lapply(var.list, SxE_function, df = GE_comb_raw_sel5)
 ```
 
@@ -160,28 +167,28 @@ SxE_out5 <- lapply(var.list, SxE_function, df = GE_comb_raw_sel5)
 
 ```{r combine}
 SxE_lin_aov1 <- rbind(SxE_out[[1]][[3]], SxE_out[[2]][[3]], SxE_out[[3]][[3]], 
-                     SxE_out[[4]][[3]],SxE_out[[5]][[3]])
+                     SxE_out[[4]][[3]],SxE_out[[5]][[3]],SxE_out[[6]][[3]])
 
 SxE_quad_aov1 <- rbind(SxE_out[[1]][[4]], SxE_out[[2]][[4]], SxE_out[[3]][[4]], 
-                     SxE_out[[4]][[4]],SxE_out[[5]][[4]])
+                     SxE_out[[4]][[4]],SxE_out[[5]][[4]], SxE_out[[6]][[4]])
 
 SxE_lin_aov1a <- rbind(SxE_out3[[1]][[3]], SxE_out3[[2]][[3]], SxE_out3[[3]][[3]], 
-                     SxE_out3[[4]][[3]],SxE_out3[[5]][[3]])
+                     SxE_out3[[4]][[3]],SxE_out3[[5]][[3]], SxE_out3[[6]][[3]])
 
 SxE_quad_aov1a <- rbind(SxE_out3[[1]][[4]], SxE_out3[[2]][[4]], SxE_out3[[3]][[4]], 
-                     SxE_out3[[4]][[4]],SxE_out3[[5]][[4]])
+                     SxE_out3[[4]][[4]],SxE_out3[[5]][[4]], SxE_out3[[6]][[4]])
 
 SxE_lin_aov2 <- rbind(SxE_out2[[1]][[3]], SxE_out2[[2]][[3]], SxE_out2[[3]][[3]], 
-                     SxE_out2[[4]][[3]],SxE_out2[[5]][[3]])
+                     SxE_out2[[4]][[3]],SxE_out2[[5]][[3]], SxE_out2[[6]][[3]])
 
 SxE_quad_aov2 <- rbind(SxE_out2[[1]][[4]], SxE_out2[[2]][[4]], SxE_out2[[3]][[4]], 
-                     SxE_out2[[4]][[4]],SxE_out2[[5]][[4]])
+                     SxE_out2[[4]][[4]],SxE_out2[[5]][[4]], SxE_out2[[6]][[4]])
 
 SxE_lin_aov3 <- rbind(SxE_out5[[1]][[3]], SxE_out5[[2]][[3]], SxE_out5[[3]][[3]], 
-                     SxE_out5[[4]][[3]],SxE_out5[[5]][[3]])
+                     SxE_out5[[4]][[3]],SxE_out5[[5]][[3]], SxE_out5[[6]][[3]])
 
 SxE_quad_aov3 <- rbind(SxE_out5[[1]][[4]], SxE_out5[[2]][[4]], SxE_out5[[3]][[4]], 
-                     SxE_out5[[4]][[4]],SxE_out5[[5]][[4]])
+                     SxE_out5[[4]][[4]],SxE_out5[[5]][[4]], SxE_out5[[6]][[4]])
 
 SxE_lin_comp <- cbind(SxE_lin_aov1, SxE_lin_aov1a,
                       SxE_lin_aov2, SxE_lin_aov3) ## compare global models to within-environment models
@@ -234,9 +241,10 @@ sel_out2 <- lapply(env.list2, FUN = function(e){
   df.use <- filter(GE_comb_raw_sel, env==e)
   flower.out <- sel_win_env_function(df.use, var.list[4])
   fruit.out <- sel_win_env_function(df.use, var.list[5])
+  fruit_succ.out <- sel_win_env_function(df.use, var.list[6])
   env <- print(paste(e))  
   
-  return(list(env, flower.out, fruit.out))
+  return(list(env, flower.out, fruit.out, fruit_succ.out))
 })
 
 # Combine dfs (ANOVA res)
@@ -267,10 +275,14 @@ ANOVA_sel_fruit <- rbind(sel_out2[[1]][[3]][[4]],sel_out2[[1]][[3]][[5]],
                          sel_out2[[2]][[3]][[4]],sel_out2[[2]][[3]][[5]],
                          sel_out2[[3]][[3]][[4]],sel_out2[[3]][[3]][[5]])
 
+ANOVA_sel_fruit_succ <- rbind(sel_out2[[1]][[4]][[4]],sel_out2[[1]][[4]][[5]], 
+                         sel_out2[[2]][[4]][[4]],sel_out2[[2]][[4]][[5]],
+                         sel_out2[[3]][[4]][[4]],sel_out2[[3]][[4]][[5]])
+
 ANOVA_sel_comb1 <- cbind(ANOVA_sel_survival, ANOVA_sel_shoot, ANOVA_sel_leaf)
-ANOVA_sel_comb2 <- cbind(ANOVA_sel_flower, ANOVA_sel_fruit)
-write.csv(ANOVA_sel_comb1, "ANOVA_sel1_win_env.csv")
-write.csv(ANOVA_sel_comb2, "ANOVA_sel2_win_env.csv")
+ANOVA_sel_comb2 <- cbind(ANOVA_sel_flower, ANOVA_sel_fruit, ANOVA_sel_fruit_succ)
+ANOVA_sel_all <- rbind(ANOVA_sel_comb1, ANOVA_sel_comb2)
+write.csv(ANOVA_sel_all, "ANOVA_sel_win_env.csv")
 
 # combine dfs (regression res)
 reg_sel_survival <- rbind(sel_out1[[1]][[2]][[2]]$coefficients, ## GH
@@ -299,8 +311,1296 @@ reg_sel_fruit <- rbind(sel_out2[[1]][[3]][[2]]$coefficients,
                          sel_out2[[2]][[3]][[2]]$coefficients,
                          sel_out2[[3]][[3]][[2]]$coefficients)
 
+reg_sel_fruit_succ <- rbind(sel_out2[[1]][[4]][[2]]$coefficients, 
+                         sel_out2[[2]][[4]][[2]]$coefficients,
+                         sel_out2[[3]][[4]][[2]]$coefficients)
+
 reg_sel_comb1 <- cbind(reg_sel_survival, reg_sel_shoot, reg_sel_leaf)
-reg_sel_comb2 <- cbind(reg_sel_flower, reg_sel_fruit)
-write.csv(reg_sel_comb1, "reg_sel1_win_env.csv")
-write.csv(reg_sel_comb2, "reg_sel2_win_env.csv")
+reg_sel_comb2 <- cbind(reg_sel_flower, reg_sel_fruit, reg_sel_fruit_succ)
+reg_sel_all <- rbind(reg_sel_comb1, reg_sel_comb2)
+write.csv(reg_sel_all, "reg_sel_win_env.csv")
+```
+
+## Plots for selection analyses
+
+```{r selection_plots}
+# plots
+
+# assign colours to plots
+
+plot_colours <- c('green4','firebrick3', 'darkblue','darkorchid', 'darkgoldenrod')
+names(plot_colours) <- levels(GE_comb_raw_sel$env)
+colScale <- scale_colour_manual(name = "Environment", values = plot_colours, labels = env_labeller3)
+
+## shoot
+
+env_names3 <- list(
+  'GH'="Greenhouse",
+  'plot_1'="Plot 1",
+  'plot_2'="Plot 2",
+  'plot_3'="Plot 3",
+  'plot_4'="Plot 4"
+)
+
+env_labeller3 <- function(variable,value){
+  return(env_names3[value])
+}
+
+# define colours for plots
+GH <- "green4"
+plot_1 <- "firebrick3"
+plot_2 <- "darkblue"
+plot_3 <- "darkorchid"
+plot_4 <- "darkgoldenrod"
+
+# create plotting function for facetted plots across environments
+
+# shoot
+
+plot_sel_all_fun <- function(df, trait){
+
+(plot <- ggplot(data=df, aes(x=stand_nod, y=get(trait), colour= env)) +
+  geom_smooth(method=lm, se=FALSE, aes(colour = env), formula = y ~ x, linetype = 1) +
+  geom_point(size=4) +
+  theme_bw() + 
+  colScale +  
+  xlab("Standardized nodules") + 
+  ylab(paste(trait)) +
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_blank(),
+        legend.text = element_text(colour="black", size=18),
+        legend.background = element_blank(),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+  
+  return(plot)
+  
+}
+
+rel_traits <- c("rel_surv","rel_shoot","rel_leaf","rel_flower","rel_fruit","rel_fruit_succ")
+abs_traits <- c("surv","shoot","leaf","flower_succ","fruits","fruit_succ")
+
+plot_sel_all_op1 <- lapply(abs_traits, plot_sel_all_fun, df = GE_comb_raw_sel) ## absolute fitness, global nods
+plot_sel_all_op2 <- lapply(rel_traits, plot_sel_all_fun, df = GE_comb_raw_sel) ## global fitness, global nods
+plot_sel_all_op3 <- lapply(rel_traits, plot_sel_all_fun, df = GE_comb_raw_sel2) ## within all
+
+# cowplots
+
+# put all four plots into one
+fig_base <- plot_grid(plot_sel_all_op1[[1]], plot_sel_all_op2[[1]], plot_sel_all_op3[[1]],
+                      plot_sel_all_op1[[2]], plot_sel_all_op2[[2]], plot_sel_all_op3[[2]],
+                      plot_sel_all_op1[[3]], plot_sel_all_op2[[3]], plot_sel_all_op3[[3]],
+          ncol = 3,
+          nrow = 3,
+          align = "hv",
+          labels = NULL)
+
+#fig1 <- add_sub(fig_base, "Environment", size = 20, hjust = 0.5)
+
+save_plot("SxE_all.pdf", fig_base,
+          ncol = 3, # we're saving a grid plot of 2 columns
+          nrow = 3, # and 3 rows
+          # each individual subplot should have an aspect ratio of 1.3
+          base_aspect_ratio = 1.3
+          )
+
+# Within-env selection
+plot_sel_win_fun <- function(df, envir){
+  
+  env.out<-paste(envir)
+  
+   df.env <- df %>%
+   filter(env == envir) %>%
+   droplevels(.)
+  
+   df.lm <- df.env[ , c("rel_shoot", "stand_nod")]
+   names(df.lm) <- c("y", "x")
+
+(plot <- ggplot(data = df.env, aes(x=stand_nod, y=rel_shoot)) +
+  geom_smooth(method=lm, se=TRUE, colour="black", formula = y ~ x, linetype = 1) +
+  geom_point(size=4, colour = get(envir)) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle(paste(envir)) +  
+  xlab(NULL) + 
+  ylab(NULL) +
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+return(list(env.out, plot))
+
+}
+
+env.list <- unique(GE_comb_raw_sel$env)
+
+plot_sel_win <- lapply(env.list, plot_sel_win_fun, df = GE_comb_raw_sel)
+
+# plot 1
+
+shoot_p1 <- subset(GE_comb_raw_sel, env == "plot_1")
+shoot_p1 <- shoot_p1[ , c("rel_shoot", "stand_nod")]
+names(shoot_p1) <- c("y", "x")
+
+(plot_sel_shoot_p1 <- ggplot(data=subset(GE_comb_raw_sel, env == "plot_1"),
+                                     aes(x=stand_nod, y=rel_shoot)) +
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 2) +
+  # geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +     
+  # geom_smooth(data=subset(GE_comb_raw_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=shoot-shoot.SE, ymax=shoot+shoot.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = p1) +
+  # geom_hline(data=subset(comb_IL.raw.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(shoot)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.raw.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Plot 1") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) + 
+  annotate("text", x = -0.2, y = 2.6, hjust=0.5,
+           label = lm_eqn(shoot_p1), parse = TRUE, size = 5) +   
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        # axis.text.x = element_blank(), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+# plot 2
+
+shoot_p2 <- subset(GE_comb_raw_sel, env == "plot_2")
+shoot_p2 <- shoot_p2[ , c("rel_shoot", "stand_nod")]
+names(shoot_p2) <- c("y", "x")
+
+(plot_sel_shoot_p2 <- ggplot(data=subset(GE_comb_raw_sel, env == "plot_2"),
+                                     aes(x=stand_nod, y=rel_shoot)) +
+  geom_smooth(method=lm, se=TRUE, colour="black", formula = y ~ x, linetype = 1) +
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +  
+  # geom_smooth(data=subset(GE_comb_raw_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=shoot-shoot.SE, ymax=shoot+shoot.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = p2) +
+  # geom_hline(data=subset(comb_IL.raw.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(shoot)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.raw.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Plot 2") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) + 
+  annotate("text", x = -0.1, y = 6.3, hjust=0.5,
+           label = quad_eqn(shoot_p2), parse = TRUE, size = 5) +     
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+# plot 3
+
+shoot_p3 <- subset(GE_comb_raw_sel, env == "plot_3")
+shoot_p3 <- shoot_p3[ , c("rel_shoot", "stand_nod")]
+names(shoot_p3) <- c("y", "x")
+
+(plot_sel_shoot_p3 <- ggplot(data=subset(GE_comb_raw_sel, env == "plot_3"),
+                                     aes(x=stand_nod, y=rel_shoot, colour=line)) +
+  geom_smooth(method=lm, se=TRUE, colour="black", formula = y ~ x, linetype = 1) +
+  # geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +      
+  # geom_smooth(data=subset(GE_comb_raw_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=shoot-shoot.SE, ymax=shoot+shoot.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = p3) +
+  # geom_hline(data=subset(comb_IL.raw.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(shoot)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.raw.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Plot 3") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) + 
+  annotate("text", x = -0.3, y = 3.5, hjust=0.5,
+           label = lm_eqn(shoot_p3), parse = TRUE, size = 5) +    
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+# plot 4
+
+shoot_p4 <- subset(GE_comb_raw_sel, env == "plot_4")
+shoot_p4 <- shoot_p4[ , c("rel_shoot", "stand_nod")]
+names(shoot_p4) <- c("y", "x")
+
+(plot_sel_shoot_p4 <- ggplot(data=subset(GE_comb_raw_sel, env == "plot_4"),
+                                     aes(x=stand_nod, y=rel_shoot, colour=line)) +
+  #geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 1) +
+  # geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +     
+  # geom_smooth(data=subset(GE_comb_raw_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=shoot-shoot.SE, ymax=shoot+shoot.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = p4) +
+  # geom_hline(data=subset(comb_IL.raw.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(shoot)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.raw.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Plot 4") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) + 
+  #annotate("text", x = -0.5, y = 1.3, label = lm_eqn(shoot_p4), parse = TRUE, size = 5) +    
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+## put them together in cowplot
+
+(fig2_base <- plot_grid(plot_sel_shoot_all, plot_sel_shoot_GH, plot_sel_shoot_p1, 
+                        plot_sel_shoot_p2, plot_sel_shoot_p3, plot_sel_shoot_p4,
+          ncol = 2,
+          nrow = 3,
+          #rel_heights = c(0.8, 1),
+          align = "hv"))
+
+fig2.xaxis <- add_sub(fig2_base, "Standardized nodules", size = 20, hjust = 0.5)
+ggdraw(fig2.xaxis)
+
+# add on the shared y axis title
+fig2.yaxis <- ggdraw() + draw_label("Relativized shoot biomass", size = 20, angle=90)
+
+# put them together
+fig2 <- plot_grid(fig2.yaxis, fig2.xaxis, ncol=2, rel_widths=c(0.03, 1)) 
+
+save_plot("selection by environment - shoot.pdf", fig2,
+          ncol = 2, # we're saving a grid plot of 4 columns
+          nrow = 3, # and 2 rows
+          # each individual subplot should have an aspect ratio of 1.3
+          base_aspect_ratio = 1.3
+          )
+
+# survival
+
+(plot_sel_surv_all <- ggplot(data=GE_comb_raw_sel,
+                                     aes(x=stand_nod, y=rel_surv)) +
+  geom_smooth(data=subset(GE_comb_raw_sel, env == "GH"), 
+              method=lm, se=FALSE, aes(colour = env), formula = y ~ x, linetype = 1) +
+  geom_smooth(data=subset(GE_comb_raw_sel, env == "plot_1"), 
+              method=lm, se=FALSE, aes(colour = env), formula = y ~ x + I(x^2), linetype = 1) + 
+  geom_smooth(data=subset(GE_comb_raw_sel, env == "plot_3"), 
+              method=lm, se=FALSE, aes(colour = env), formula = y ~ x + I(x^2), linetype = 1) +   
+  # geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +
+  # geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 1) +   
+  # geom_smooth(data=subset(GE_comb_raw_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=surv-surv.SE, ymax=surv+surv.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(aes(colour= env), size=3) +
+  # geom_hline(data=subset(comb_IL.raw.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(surv)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.raw.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  # geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("All environments") +  
+  colScale +  
+  #facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_blank(),
+        legend.text = element_text(colour="black", size=18),
+        legend.background = element_blank(),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+# define colours for plots
+GH <- "green4"
+plot_1 <- "firebrick3"
+plot_2 <- "darkblue"
+plot_3 <- "darkorchid"
+plot_4 <- "darkgoldenrod"
+
+lm_eqn <- function(df){
+    m <- lm(y ~ x, df);
+    eq <- substitute(italic(y) == a + b %.% italic(x)*","~~italic(r)^2~"="~r2, 
+         list(a = format(coef(m)[1], digits = 3), 
+              b = format(coef(m)[2], digits = 3), 
+             r2 = format(summary(m)$r.squared, digits = 3)))
+    as.character(as.expression(eq));                 
+}
+
+quad_eqn <- function(df){
+    m <- lm(y ~ x + I(x^2), df);
+    eq <- substitute(italic(y) == a + b %.% italic(x)* + c %.% italic(x)^2*","~~italic(r)^2~"="~r2, 
+         list(a = format(coef(m)[1], digits = 3), 
+              b = format(coef(m)[2], digits = 3), 
+              c = format(coef(m)[3], digits = 3), 
+             r2 = format(summary(m)$r.squared, digits = 3)))
+    as.character(as.expression(eq));                 
+}
+
+# GH
+
+surv_GH <- subset(GE_comb_raw_sel, env == "GH")
+surv_GH <- surv_GH[ , c("rel_surv", "stand_nod")]
+names(surv_GH) <- c("y", "x")
+
+(plot_sel_surv_GH <- ggplot(data=subset(GE_comb_raw_sel, env == "GH"), 
+                                         aes(x=stand_nod, y=rel_surv)) +
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 1) +
+  # geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +   
+  # geom_smooth(data=subset(GE_comb_raw_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=surv-surv.SE, ymax=surv+surv.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = GH) +
+  # geom_hline(data=subset(comb_IL.raw.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(surv)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.raw.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Greenhouse") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) +  
+  annotate("text", x = 0, y = 1.4, 
+           label = lm_eqn(surv_GH), parse = TRUE, size = 4) +  
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        # axis.text.x = element_blank(), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+# plot 1
+
+surv_p1 <- subset(GE_comb_raw_sel, env == "plot_1")
+surv_p1 <- surv_p1[ , c("rel_surv", "stand_nod")]
+names(surv_p1) <- c("y", "x")
+
+(plot_sel_surv_p1 <- ggplot(data=subset(GE_comb_raw_sel, env == "plot_1"),
+                                     aes(x=stand_nod, y=rel_surv)) +
+  #geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 1) +
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 1) +     
+  # geom_smooth(data=subset(GE_comb_raw_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=surv-surv.SE, ymax=surv+surv.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = plot_1) +
+  # geom_hline(data=subset(comb_IL.raw.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(surv)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.raw.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Plot 1") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) + 
+  annotate("text", x = 0.5, y = 1.5, label = quad_eqn(surv_p1), parse = TRUE, size = 4) +   
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        # axis.text.x = element_blank(), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+# plot 2
+
+surv_p2 <- subset(GE_comb_raw_sel, env == "plot_2")
+surv_p2 <- surv_p2[ , c("rel_surv", "stand_nod")]
+names(surv_p2) <- c("y", "x")
+
+(plot_sel_surv_p2 <- ggplot(data=subset(GE_comb_raw_sel, env == "plot_2"),
+                                     aes(x=stand_nod, y=rel_surv)) +
+  #geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 1) +
+  # geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +  
+  # geom_smooth(data=subset(GE_comb_raw_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=surv-surv.SE, ymax=surv+surv.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = p2) +
+  # geom_hline(data=subset(comb_IL.raw.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(surv)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.raw.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Plot 2") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) + 
+  # annotate("text", x = 0.4, y = 6, label = lm_eqn(surv_p2), parse = TRUE, size = 5) +     
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+# plot 3
+
+surv_p3 <- subset(GE_comb_raw_sel, env == "plot_3")
+surv_p3 <- surv_p3[ , c("rel_surv", "stand_nod")]
+names(surv_p3) <- c("y", "x")
+
+
+(plot_sel_surv_p3 <- ggplot(data=subset(GE_comb_raw_sel, env == "plot_3"),
+                                     aes(x=stand_nod, y=rel_surv, colour=line)) +
+  # geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 1) +
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 1) +    
+  # geom_smooth(data=subset(GE_comb_raw_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=surv-surv.SE, ymax=surv+surv.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = p3) +
+  # geom_hline(data=subset(comb_IL.raw.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(surv)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.raw.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Plot 3") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) + 
+  # geom_text(aes(label = quad_eq), data = dftext, parse = TRUE)  +
+  annotate("text", x = -0.5, y = 1.5, label = quad_eqn(surv_p3), parse = TRUE, size = 4) +    
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+# plot 4
+
+surv_p4 <- subset(GE_comb_raw_sel, env == "plot_4")
+surv_p4 <- surv_p4[ , c("rel_surv", "stand_nod")]
+names(surv_p4) <- c("y", "x")
+
+(plot_sel_surv_p4 <- ggplot(data=subset(GE_comb_raw_sel, env == "plot_4"),
+                                     aes(x=stand_nod, y=rel_surv, colour=line)) +
+  #geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 1) +
+  # geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +     
+  # geom_smooth(data=subset(GE_comb_raw_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=surv-surv.SE, ymax=surv+surv.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = p4) +
+  # geom_hline(data=subset(comb_IL.raw.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(surv)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.raw.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Plot 4") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) + 
+  # annotate("text", x = -0.5, y = 1.3, label = lm_eqn(surv_p4), parse = TRUE, size = 5) +    
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+## put them together in cowplot
+
+(fig2_base <- plot_grid(plot_sel_surv_all, plot_sel_surv_GH, plot_sel_surv_p1, 
+                        plot_sel_surv_p2, plot_sel_surv_p3, plot_sel_surv_p4,
+          ncol = 3,
+          nrow = 2,
+          #rel_heights = c(0.8, 1),
+          align = "hv"))
+
+fig2.xaxis <- add_sub(fig2_base, "Standardized nodules", size = 20, hjust = 0.5)
+ggdraw(fig2.xaxis)
+
+# add on the shared y axis title
+fig2.yaxis <- ggdraw() + draw_label("Relativized survival", size = 20, angle=90)
+
+# put them together
+fig2 <- plot_grid(fig2.yaxis, fig2.xaxis, ncol=2, rel_widths=c(0.03, 1)) 
+
+save_plot("selection by environment - surv.pdf", fig2,
+          ncol = 3, # we're saving a grid plot of 4 columns
+          nrow = 2, # and 2 rows
+          # each individual subplot should have an aspect ratio of 1.3
+          base_aspect_ratio = 1.3
+          )
+
+# fruits
+
+# plot 1
+
+fruit_p1 <- subset(GE_comb_lsm_sel, env == "plot_1")
+fruit_p1 <- fruit_p1[ , c("rel_fruit", "stand_nod")]
+names(fruit_p1) <- c("y", "x")
+
+(plot_sel_fruit_p1 <- ggplot(data=subset(GE_comb_lsm_sel, env == "plot_1"),
+                                     aes(x=stand_nod, y=rel_fruit)) +
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 1) +
+  # geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +     
+  # geom_smooth(data=subset(GE_comb_lsm_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=fruit-fruit.SE, ymax=fruit+fruit.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = p1) +
+  # geom_hline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(fruit)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Plot 1") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) + 
+  # annotate("text", x = -0.6, y = 2.3, label = lm_eqn(fruit_p1), parse = TRUE, size = 5) +  
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        # axis.text.x = element_blank(), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+# plot 2
+
+fruit_p2 <- subset(GE_comb_lsm_sel, env == "plot_2")
+fruit_p2 <- fruit_p2[ , c("rel_fruit", "stand_nod")]
+names(fruit_p2) <- c("y", "x")
+
+(plot_sel_fruit_p2 <- ggplot(data=subset(GE_comb_lsm_sel, env == "plot_2"),
+                                     aes(x=stand_nod, y=rel_fruit)) +
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 1) +
+  # geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +  
+  # geom_smooth(data=subset(GE_comb_lsm_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=fruit-fruit.SE, ymax=fruit+fruit.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = p2) +
+  # geom_hline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(fruit)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Plot 2") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) + 
+  #annotate("text", x = -0.5, y = 2.3, label = lm_eqn(fruit_p2), parse = TRUE, size = 5) +    
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+# plot 3
+
+fruit_p3 <- subset(GE_comb_lsm_sel, env == "plot_3")
+fruit_p3 <- fruit_p3[ , c("rel_fruit", "stand_nod")]
+names(fruit_p3) <- c("y", "x")
+
+(plot_sel_fruit_p3 <- ggplot(data=subset(GE_comb_lsm_sel, env == "plot_3"),
+                                     aes(x=stand_nod, y=rel_fruit, colour=line)) +
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 1) +
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +      
+  # geom_smooth(data=subset(GE_comb_lsm_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=fruit-fruit.SE, ymax=fruit+fruit.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = p3) +
+  # geom_hline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(fruit)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Plot 3") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) + 
+  # annotate("text", x = -0.68, y = 2.0, label = lm_eqn(fruit_p3), parse = TRUE, size = 5) +   
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+# plot 4
+
+fruit_p4 <- subset(GE_comb_lsm_sel, env == "plot_4")
+fruit_p4 <- fruit_p4[ , c("rel_fruit", "stand_nod")]
+names(fruit_p4) <- c("y", "x")
+
+(plot_sel_fruit_p4 <- ggplot(data=subset(GE_comb_lsm_sel, env == "plot_4"),
+                                     aes(x=stand_nod, y=rel_fruit, colour=line)) +
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 1) +
+  # geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +     
+  # geom_smooth(data=subset(GE_comb_lsm_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=fruit-fruit.SE, ymax=fruit+fruit.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = p4) +
+  # geom_hline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(fruit)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Plot 4") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) + 
+  #annotate("text", x = -0.60, y = 1.5, label = lm_eqn(fruit_p4), parse = TRUE, size = 5) +   
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+## put them together in cowplot
+
+(fig4_base <- plot_grid(plot_sel_fruit_p1, 
+                        plot_sel_fruit_p2, plot_sel_fruit_p3, plot_sel_fruit_p4,
+          ncol = 2,
+          nrow = 2,
+          #rel_heights = c(0.8, 1),
+          align = "hv"))
+
+fig4.xaxis <- add_sub(fig4_base, "Standardized nodules", size = 20, hjust = 0.5)
+ggdraw(fig4.xaxis)
+
+# add on the shared y axis title
+fig4.yaxis <- ggdraw() + draw_label("Relativized fruits", size = 20, angle=90)
+
+# put them together
+fig4 <- plot_grid(fig4.yaxis, fig4.xaxis, ncol=2, rel_widths=c(0.03, 1)) 
+
+save_plot("selection by environment - fruit.pdf", fig4,
+          ncol = 2, # we're saving a grid plot of 4 columns
+          nrow = 2, # and 2 rows
+          # each individual subplot should have an aspect ratio of 1.3
+          base_aspect_ratio = 1.3
+          )
+
+# leaf
+
+## over all environments
+
+(plot_sel_leaf_all <- ggplot(data=GE_comb_lsm_sel,
+                                     aes(x=stand_nod, y=rel_leaf, colour=env)) +
+  geom_smooth(method=lm, se=FALSE, aes(colour = env), formula = y ~ x, linetype = 1) +
+  # geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +
+  # geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 1) +   
+    # geom_smooth(data=subset(GE_comb_lsm_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=leaf-leaf.SE, ymax=leaf+leaf.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4) +
+  # geom_hline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(leaf)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  # geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("All environments") +  
+  #facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  colScale + 
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position=c(0.80,0.80),
+        legend.title = element_blank(),
+        legend.text = element_text(colour="black", size=18),
+        legend.background = element_blank(),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+# GH
+
+leaf_GH <- subset(GE_comb_lsm_sel, env == "GH")
+leaf_GH <- leaf_GH[ , c("rel_leaf", "stand_nod")]
+names(leaf_GH) <- c("y", "x")
+
+(plot_sel_leaf_GH <- ggplot(data=subset(GE_comb_lsm_sel, env == "GH"),
+                                     aes(x=stand_nod, y=rel_leaf)) +
+  geom_smooth(method=lm, se=TRUE, colour="black", formula = y ~ x, linetype = 1) +
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +   
+  # geom_smooth(data=subset(GE_comb_lsm_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=leaf-leaf.SE, ymax=leaf+leaf.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = GH) +
+  # geom_hline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(leaf)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Greenhouse") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) +  
+  # annotate("text", x = 1, y = 0.72, label = lm_eqn(leaf_GH), parse = TRUE, size = 5) +     
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        # axis.text.x = element_blank(), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+# plot 1
+
+leaf_p1 <- subset(GE_comb_lsm_sel, env == "plot_1")
+leaf_p1 <- leaf_p1[ , c("rel_leaf", "stand_nod")]
+names(leaf_p1) <- c("y", "x")
+
+(plot_sel_leaf_p1 <- ggplot(data=subset(GE_comb_lsm_sel, env == "plot_1"),
+                                     aes(x=stand_nod, y=rel_leaf)) +
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 1) +
+  # geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +     
+  # geom_smooth(data=subset(GE_comb_lsm_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=leaf-leaf.SE, ymax=leaf+leaf.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = p1) +
+  # geom_hline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(leaf)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Plot 1") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) + 
+  # annotate("text", x = -0.6, y = 2.3, label = lm_eqn(leaf_p1), parse = TRUE, size = 5) +  
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        # axis.text.x = element_blank(), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+# plot 2
+
+leaf_p2 <- subset(GE_comb_lsm_sel, env == "plot_2")
+leaf_p2 <- leaf_p2[ , c("rel_leaf", "stand_nod")]
+names(leaf_p2) <- c("y", "x")
+
+(plot_sel_leaf_p2 <- ggplot(data=subset(GE_comb_lsm_sel, env == "plot_2"),
+                                     aes(x=stand_nod, y=rel_leaf)) +
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 1) +
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +  
+  # geom_smooth(data=subset(GE_comb_lsm_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=leaf-leaf.SE, ymax=leaf+leaf.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = p2) +
+  # geom_hline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(leaf)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Plot 2") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) + 
+  #annotate("text", x = -0.5, y = 2.3, label = lm_eqn(leaf_p2), parse = TRUE, size = 5) +    
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+# plot 3
+
+leaf_p3 <- subset(GE_comb_lsm_sel, env == "plot_3")
+leaf_p3 <- leaf_p3[ , c("rel_leaf", "stand_nod")]
+names(leaf_p3) <- c("y", "x")
+
+(plot_sel_leaf_p3 <- ggplot(data=subset(GE_comb_lsm_sel, env == "plot_3"),
+                                     aes(x=stand_nod, y=rel_leaf, colour=line)) +
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 1) +
+  # geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +      
+  # geom_smooth(data=subset(GE_comb_lsm_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=leaf-leaf.SE, ymax=leaf+leaf.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = p3) +
+  # geom_hline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(leaf)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Plot 3") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) + 
+  # annotate("text", x = -0.68, y = 2.0, label = lm_eqn(leaf_p3), parse = TRUE, size = 5) +   
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+# plot 4
+
+leaf_p4 <- subset(GE_comb_lsm_sel, env == "plot_4")
+leaf_p4 <- leaf_p4[ , c("rel_leaf", "stand_nod")]
+names(leaf_p4) <- c("y", "x")
+
+(plot_sel_leaf_p4 <- ggplot(data=subset(GE_comb_lsm_sel, env == "plot_4"),
+                                     aes(x=stand_nod, y=rel_leaf, colour=line)) +
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 1) +
+  # geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +     
+  # geom_smooth(data=subset(GE_comb_lsm_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=leaf-leaf.SE, ymax=leaf+leaf.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = p4) +
+  # geom_hline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(leaf)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Plot 4") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) + 
+  #annotate("text", x = -0.60, y = 1.5, label = lm_eqn(leaf_p4), parse = TRUE, size = 5) +   
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+## put them together in cowplot
+
+(fig3_base <- plot_grid(plot_sel_leaf_all, plot_sel_leaf_GH, plot_sel_leaf_p1, 
+                        plot_sel_leaf_p2, plot_sel_leaf_p3, plot_sel_leaf_p4,
+          ncol = 3,
+          nrow = 2,
+          #rel_heights = c(0.8, 1),
+          align = "hv"))
+
+fig3.xaxis <- add_sub(fig3_base, "Standardized nodules", size = 20, hjust = 0.5)
+ggdraw(fig3.xaxis)
+
+# add on the shared y axis title
+fig3.yaxis <- ggdraw() + draw_label("Relativized leaves", size = 20, angle=90)
+
+# put them together
+fig3 <- plot_grid(fig3.yaxis, fig3.xaxis, ncol=2, rel_widths=c(0.03, 1)) 
+
+save_plot("selection by environment - leaf.pdf", fig3,
+          ncol = 3, # we're saving a grid plot of 4 columns
+          nrow = 2, # and 2 rows
+          # each individual subplot should have an aspect ratio of 1.3
+          base_aspect_ratio = 1.3
+          )
+
+# Flowers
+
+# plot 1
+
+flower_p1 <- subset(GE_comb_lsm_sel, env == "plot_1")
+flower_p1 <- flower_p1[ , c("rel_flower", "stand_nod")]
+names(flower_p1) <- c("y", "x")
+
+(plot_sel_flower_p1 <- ggplot(data=subset(GE_comb_lsm_sel, env == "plot_1"),
+                                     aes(x=stand_nod, y=rel_flower)) +
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 1) +
+  # geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +     
+  # geom_smooth(data=subset(GE_comb_lsm_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=flower-flower.SE, ymax=flower+flower.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = p1) +
+  # geom_hline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(flower)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Plot 1") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) + 
+  # annotate("text", x = -0.6, y = 2.3, label = lm_eqn(flower_p1), parse = TRUE, size = 5) +  
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        # axis.text.x = element_blank(), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+# plot 2
+
+flower_p2 <- subset(GE_comb_lsm_sel, env == "plot_2")
+flower_p2 <- flower_p2[ , c("rel_flower", "stand_nod")]
+names(flower_p2) <- c("y", "x")
+
+(plot_sel_flower_p2 <- ggplot(data=subset(GE_comb_lsm_sel, env == "plot_2"),
+                                     aes(x=stand_nod, y=rel_flower)) +
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 1) +
+  # geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +  
+  # geom_smooth(data=subset(GE_comb_lsm_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=flower-flower.SE, ymax=flower+flower.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = p2) +
+  # geom_hline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(flower)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Plot 2") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) + 
+  #annotate("text", x = -0.5, y = 2.3, label = lm_eqn(flower_p2), parse = TRUE, size = 5) +    
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+# plot 3
+
+flower_p3 <- subset(GE_comb_lsm_sel, env == "plot_3")
+flower_p3 <- flower_p3[ , c("rel_flower", "stand_nod")]
+names(flower_p3) <- c("y", "x")
+
+(plot_sel_flower_p3 <- ggplot(data=subset(GE_comb_lsm_sel, env == "plot_3"),
+                                     aes(x=stand_nod, y=rel_flower, colour=line)) +
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 1) +
+  # geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +      
+  # geom_smooth(data=subset(GE_comb_lsm_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=flower-flower.SE, ymax=flower+flower.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = p3) +
+  # geom_hline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(flower)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Plot 3") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) + 
+  # annotate("text", x = -0.68, y = 2.0, label = lm_eqn(flower_p3), parse = TRUE, size = 5) +   
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+# plot 4
+
+flower_p4 <- subset(GE_comb_lsm_sel, env == "plot_4")
+flower_p4 <- flower_p4[ , c("rel_flower", "stand_nod")]
+names(flower_p4) <- c("y", "x")
+
+(plot_sel_flower_p4 <- ggplot(data=subset(GE_comb_lsm_sel, env == "plot_4"),
+                                     aes(x=stand_nod, y=rel_flower, colour=line)) +
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 1) +
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x + I(x^2), linetype = 2) +     
+  # geom_smooth(data=subset(GE_comb_lsm_sel, env %in% c("3","4")), method=lm, se=FALSE, colour="black") +
+  # geom_errorbar(aes(ymin=flower-flower.SE, ymax=flower+flower.SE), colour="black") +
+  # geom_errorbarh(aes(xmin=nod-nod.SE, xmax=nod+nod.SE), colour="black") +
+  geom_point(size=4, colour = p4) +
+  # geom_hline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(yintercept=mean(flower)), colour="black", linetype=2) +
+  # geom_vline(data=subset(comb_IL.lsm.s, treat %in% c("anc1022")), 
+  #            aes(xintercept=mean(nod)), colour="black", linetype=2) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle("Plot 4") +  
+  # facet_wrap(~env, scales="free", labeller=env_labeller3) +
+  #colScale +
+  xlab(NULL) + 
+  ylab(NULL) +
+  # scale_shape_manual(name="Morphotype", values=c(16,17)) +
+  # scale_y_continuous(limits = c(0,6)) + 
+  #annotate("text", x = -0.60, y = 1.5, label = lm_eqn(flower_p4), parse = TRUE, size = 5) +   
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        #strip.text.x = element_text(size=12, face="bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+## put them together in cowplot
+
+(fig3_base <- plot_grid(plot_sel_flower_p1, 
+                        plot_sel_flower_p2, plot_sel_flower_p3, plot_sel_flower_p4,
+          ncol = 2,
+          nrow = 2,
+          #rel_heights = c(0.8, 1),
+          align = "hv"))
+
+fig3.xaxis <- add_sub(fig3_base, "Standardized nodules", size = 20, hjust = 0.5)
+ggdraw(fig3.xaxis)
+
+# add on the shared y axis title
+fig3.yaxis <- ggdraw() + draw_label("Relativized flowers", size = 20, angle=90)
+
+# put them together
+fig3 <- plot_grid(fig3.yaxis, fig3.xaxis, ncol=2, rel_widths=c(0.03, 1)) 
+
+save_plot("selection by environment - flower.pdf", fig3,
+          ncol = 2, # we're saving a grid plot of 4 columns
+          nrow = 2, # and 2 rows
+          # each individual subplot should have an aspect ratio of 1.3
+          base_aspect_ratio = 1.3
+          )
+
 ```

@@ -11,19 +11,19 @@ editor_options:
 
 ```{r setup, warning=FALSE, message=FALSE}
 # packages
-library("tidyverse") #includes ggplot2, dplyr, readr, stringr
-library("cowplot") # paneled graphs
-library("reshape2") # dcast function
-library("corrplot") # to make correlation plots
-library("RColorBrewer") # to specify color brewers
+library("tidyverse") ## includes ggplot2, dplyr, readr, stringr
+library("cowplot") ## paneled graphs
+library("reshape2") ## dcast function
+library("corrplot") ## to make correlation plots
+library("psych") ## calculate p-vals of correlation matrix
+library("RColorBrewer") ## to specify color brewers
 ```
 
 ## Spreadsheets
 
 ```{r import_df, warning=FALSE, message=FALSE}
 # created using "data_setup.Rmd"
-date <- format(Sys.Date())
-load(paste0("combined_field_GH_", date, ".Rdata"))
+load("./combined_field_GH_28Aug2019.Rdata")
 load("./dataset_cleaned/shoot_cleaned.Rdata")
 load("./dataset_cleaned/survival_cleaned.Rdata")
 load("./dataset_cleaned/leaves_cleaned.Rdata")
@@ -116,20 +116,20 @@ sum_totalred_G.raw <- red_nod_cc %>%
 # flowers
 sum_flo_E.raw <- flower_cc %>%
   group_by(env) %>%
-  summarize(mean_flo = mean(flo), SE_flo = (sd(flo))/(sqrt(length(flo)))) %>%
+  summarize(mean_flo = mean(flo_succ), SE_flo = (sd(flo_succ))/(sqrt(length(flo_succ)))) %>%
   as.data.frame(.)
 
 sum_flo_G.raw <- flower_cc %>%
   group_by(line) %>%
-  summarize(mean_flo = mean(flo), SE_flo = (sd(flo))/(sqrt(length(flo)))) %>%
+  summarize(mean_flo = mean(flo_succ), SE_flo = (sd(flo_succ))/(sqrt(length(flo_succ)))) %>%
   as.data.frame(.)
 
 sum_flo_GE.raw <- flower_cc %>%
   group_by(env, line) %>%
-  summarize(mean_flo = mean(flo), SE_flo = (sd(flo))/(sqrt(length(flo)))) %>%
+  summarize(mean_flo = mean(flo_succ), SE_flo = (sd(flo_succ))/(sqrt(length(flo_succ)))) %>%
   as.data.frame(.)
 
-# fruit success
+# fruit number
 sum_fru_E.raw <- fruit_cc %>%
   group_by(env) %>%
   summarize(mean_fru = mean(fru), SE_fru = (sd(fru))/(sqrt(length(fru)))) %>%
@@ -144,6 +144,22 @@ sum_fru_GE.raw <- fruit_cc %>%
   group_by(env, line) %>%
   summarize(mean_fru = mean(fru), SE_fru = (sd(fru))/(sqrt(length(fru)))) %>%
   as.data.frame(.)
+
+# fruit success
+sum_fru_succ_E.raw <- fruit_cc %>%
+  group_by(env) %>%
+  summarize(mean_fru_succ = mean(fru_succ), SE_fru_succ = (sd(fru_succ))/(sqrt(length(fru_succ)))) %>%
+  as.data.frame(.)
+
+sum_fru_succ_G.raw <- fruit_cc %>%
+  group_by(line) %>%
+  summarize(mean_fru_succ = mean(fru_succ), SE_fru_succ = (sd(fru_succ))/(sqrt(length(fru_succ)))) %>%
+  as.data.frame(.)
+
+sum_fru_succ_GE.raw <- fruit_cc %>%
+  group_by(env, line) %>%
+  summarize(mean_fru_succ = mean(fru_succ), SE_fru_succ = (sd(fru_succ))/(sqrt(length(fru_succ)))) %>%
+  as.data.frame(.)
 ```
 
 ## Combine raw means
@@ -156,11 +172,12 @@ G_comb_raw_SE3 <- merge(y=G_comb_raw_SE2, x=sum_nod_G.raw, by = "line", all = TR
 G_comb_raw_SE4 <- merge(y=G_comb_raw_SE3, x=sum_choice_G.raw, by = "line", all = TRUE)
 G_comb_raw_SE5 <- merge(y=G_comb_raw_SE4, x=sum_totalred_G.raw, by = "line", all = TRUE)
 G_comb_raw_SE6 <- merge(y=G_comb_raw_SE5, x=sum_flo_G.raw, by = "line", all = TRUE)
-G_comb_raw_SE <- merge(y=G_comb_raw_SE6, x=sum_fru_G.raw, by = "line", all = TRUE)
+G_comb_raw_SE7 <- merge(y=G_comb_raw_SE6, x=sum_fru_G.raw, by = "line", all = TRUE)
+G_comb_raw_SE <- merge(y=G_comb_raw_SE7, x=sum_fru_succ_G.raw, by = "line", all = TRUE)
 
 # drop all SE. columns
 G_comb_raw <- G_comb_raw_SE[, -grep(c("SE_"), colnames(G_comb_raw_SE))]
-names(G_comb_raw) <- c("line","fruits","flowers","red_nodules","choice",
+names(G_comb_raw) <- c("line","fruit_succ","fruits","flower_succ","red_nodules","choice",
                        "total_nodules","leaves","survival","shoot_biomass")
 
 ## effect of line within environments
@@ -170,6 +187,7 @@ sum_leaf_GE.raw$line_env <- do.call(paste, c(sum_leaf_GE.raw[c("line","env")], s
 sum_nod_GE.raw$line_env <- do.call(paste, c(sum_nod_GE.raw[c("line","env")], sep = "-"))
 sum_flo_GE.raw$line_env <- do.call(paste, c(sum_flo_GE.raw[c("line","env")], sep = "-"))
 sum_fru_GE.raw$line_env <- do.call(paste, c(sum_fru_GE.raw[c("line","env")], sep = "-"))
+sum_fru_succ_GE.raw$line_env <- do.call(paste, c(sum_fru_succ_GE.raw[c("line","env")], sep = "-"))
 sum_choice_G.raw$env <- "GH"
 sum_choice_G.raw$line_env <- do.call(paste, c(sum_choice_G.raw[c("line","env")], sep = "-"))
 sum_totalred_G.raw$env <- "GH"
@@ -180,7 +198,8 @@ GE_comb_raw_SE2 <- merge(y=GE_comb_raw_SE1, x=sum_leaf_GE.raw, by = "line_env", 
 GE_comb_raw_SE3 <- merge(y=GE_comb_raw_SE2, x=sum_nod_GE.raw, by = "line_env", all = TRUE)
 GE_comb_raw_SE4 <- merge(y=GE_comb_raw_SE3, x=sum_flo_GE.raw, by = "line_env", all = TRUE)
 GE_comb_raw_SE5 <- merge(y=GE_comb_raw_SE4, x=sum_fru_GE.raw, by = "line_env", all = TRUE)
-GE_comb_raw_SE6 <- merge(y=GE_comb_raw_SE5, x=sum_choice_G.raw, by = "line_env", all = TRUE)
+GE_comb_raw_SE5.1 <- merge(y=GE_comb_raw_SE5, x=sum_fru_succ_GE.raw, by = "line_env", all = TRUE)
+GE_comb_raw_SE6 <- merge(y=GE_comb_raw_SE5.1, x=sum_choice_G.raw, by = "line_env", all = TRUE)
 GE_comb_raw_SE <- merge(y=GE_comb_raw_SE6, x=sum_totalred_G.raw, by = "line_env", all = TRUE)
 
 # drop all SE. columns
@@ -191,12 +210,11 @@ GE_comb_raw3 <- GE_comb_raw2[, -grep(c("y"), colnames(GE_comb_raw2))]
 GE_comb_raw <- GE_comb_raw3 %>% 
   separate(line_env, c('line','env'), sep = '-')
 
-names(GE_comb_raw) <- c("line","env","totalred","choice","fruit","flower",
+names(GE_comb_raw) <- c("line","env","totalred","choice","fruit_succ","fruits","flower_succ",
                        "nod","leaf","surv","shoot")
 
-# dcast for env (long to wide format)
 # reshape from long to wide (for each env)
-GE_comb_raw.w <- reshape(GE_comb_raw, idvar = "line", timevar = "env", direction = "wide")
+GE_comb_raw.w <- reshape(GE_comb_raw, idvar = "line", timevar = "env", direction = "wide") ## for correlation plots
 ```
 
 ## Save raw means
@@ -237,13 +255,8 @@ env_labeller <- function(variable,value){
 (plot.sum_shoot <- ggplot(GE_comb_raw, aes(x=env, y=shoot, group=line)) + 
   geom_point(size=3, position = position_dodge(0.3)) + 
   geom_line(position = position_dodge(0.3)) +
-  annotate("text", x = 1, y = 1500, label ="A", fontface="bold") +
-  annotate("text", x = 2, y = 1500, label = "B", fontface="bold") +
-  annotate("text", x = 3, y = 1500, label = "C", fontface="bold") +
-  annotate("text", x = 4, y = 1500, label = "B", fontface="bold") +
-  annotate("text", x = 5, y = 1500, label = "A", fontface="bold") +  
   annotate("text", x = 1.4, y = 1000, label =  'bold("Environment***")', parse = TRUE) + 
-  annotate("text", x = 1.4, y = 950, label =  'bold("Line***")', parse = TRUE) +  
+  annotate("text", x = 1.4, y = 950, label =  'bold("Line**")', parse = TRUE) +  
   annotate("text", x = 1.4, y = 900, label =  'bold("Environment x Line***")', parse = TRUE) +   
   theme_bw() +
   xlab(NULL) + 
@@ -262,14 +275,9 @@ env_labeller <- function(variable,value){
 (plot.sum_surv <- ggplot(GE_comb_raw, aes(x=env, y=surv, group=line)) + 
   geom_point(size=3, position = position_dodge(0.3)) + 
   geom_line(position = position_dodge(0.3)) +
-  annotate("text", x = 1, y = 1.05, label ="A", fontface="bold") +
-  annotate("text", x = 2, y = 1.05, label = "A", fontface="bold") +
-  annotate("text", x = 3, y = 1.05, label = "A", fontface="bold") +
-  annotate("text", x = 4, y = 1.05, label = "A", fontface="bold") +
-  annotate("text", x = 5, y = 1.05, label = "A", fontface="bold") +  
   annotate("text", x = 1.4, y = 0.18, label =  'bold("Environment***")', parse = TRUE) + 
   annotate("text", x = 1.4, y = 0.14, label =  'bold("Line*")', parse = TRUE) +  
-  annotate("text", x = 1.4, y = 0.1, label =  'bold("Environment x Line***")', parse = TRUE) +   
+  annotate("text", x = 1.4, y = 0.1, label =  "Environment x Line") +   
   theme_bw() +
   xlab(NULL) + 
   ylab("Survival (%)") +
@@ -288,14 +296,9 @@ env_labeller <- function(variable,value){
                                       group=line)) + 
   geom_point(size=3, position = position_dodge(0.3)) + 
   geom_line(position = position_dodge(0.3)) +
-  annotate("text", x = 1, y = 210, label = "A", fontface="bold") +
-  annotate("text", x = 2, y = 210, label = "B", fontface="bold") +
-  annotate("text", x = 3, y = 210, label = "C", fontface="bold") +
-  annotate("text", x = 4, y = 210, label = "B", fontface="bold") +
-  annotate("text", x = 5, y = 210, label = "A,B,C", fontface="bold") +   
   annotate("text", x = 4.7, y = 170, label =  'bold("Environment***")', parse = TRUE) + 
   annotate("text", x = 4.7, y = 160, label =  'bold("Line***")', parse = TRUE) +  
-  annotate("text", x = 4.7, y = 150, label =  'bold("Environment x Line***")', parse = TRUE) +     
+  annotate("text", x = 4.7, y = 150, label =  'bold("Environment x Line**")', parse = TRUE) +     
   theme_bw() +
   xlab(NULL) + 
   ylab("Leaves (no.)") +
@@ -317,14 +320,9 @@ env_labeller <- function(variable,value){
                                       group=line)) + 
   geom_point(size=3, position = position_dodge(0.3)) + 
   geom_line(position = position_dodge(0.3)) +
-  annotate("text", x = 1, y = 330, label = "C", fontface="bold") +
-  annotate("text", x = 2, y = 330, label = "B", fontface="bold") +
-  annotate("text", x = 3, y = 330, label = "B", fontface="bold") +
-  annotate("text", x = 4, y = 330, label = "A", fontface="bold") +
-  annotate("text", x = 5, y = 330, label = "A", fontface="bold") +   
   annotate("text", x = 4.6, y = 250, label =  'bold("Environment***")', parse = TRUE) + 
-  annotate("text", x = 4.6, y = 238, label =  'bold("Line***")', parse = TRUE) +  
-  annotate("text", x = 4.6, y = 226, label =  'bold("Environment x Line**")', parse=TRUE) +  
+  annotate("text", x = 4.6, y = 238, label =  'bold("Line*")', parse = TRUE) +  
+  annotate("text", x = 4.6, y = 226, label =  'bold("Environment x Line*")', parse=TRUE) +  
   theme_bw() +
   xlab(NULL) + 
   ylab("Nodules (no.)") +
@@ -356,17 +354,14 @@ plot_label3 <- function(variable,value){
 }
 
 # fruit
-(plot.sum_fru <- ggplot(subset(GE_comb_raw, ! env %in% c("GH","plot_4")), aes(x=env, y=fruit, 
+(plot.sum_fru <- ggplot(subset(GE_comb_raw, ! env %in% c("GH","plot_4")), aes(x=env, y=fruits, 
                                       group=line)) + 
   geom_point(size=3, position = position_dodge(0.3)) + 
   geom_line(position = position_dodge(0.3)) +
   theme_bw() +
-  annotate("text", x = 1, y = 30, label = "A", fontface="bold") +
-  annotate("text", x = 2, y = 30, label = "B", fontface="bold") +
-  annotate("text", x = 3, y = 30, label = "A", fontface="bold") +
   annotate("text", x = 3, y = 26, label =  'bold("Environment***")', parse = TRUE) + 
-  annotate("text", x = 3, y = 24.5, label =  'bold("Line***")', parse = TRUE) +  
-  annotate("text", x = 3, y = 23, label =  'bold("Environment x Line***")', parse = TRUE) +   
+  annotate("text", x = 3, y = 25, label =  'bold("Line***")', parse = TRUE) +  
+  annotate("text", x = 3, y = 24, label =  'bold("Environment x Line***")', parse = TRUE) +   
   xlab(NULL) + 
   ylab("Fruits (no.)") +
   scale_x_discrete(labels=plot_label3)  +
@@ -381,19 +376,16 @@ plot_label3 <- function(variable,value){
         panel.grid.minor = element_blank()))
 
 # flowers
-(plot.sum_flo <- ggplot(subset(GE_comb_raw, ! env %in% c("GH","plot_4")), aes(x=env, y=flower, 
+(plot.sum_flo <- ggplot(subset(GE_comb_raw, ! env %in% c("GH","plot_4")), aes(x=env, y=flower_succ, 
                                       group=line)) + 
   geom_point(size=3, position = position_dodge(0.3)) + 
   geom_line(position = position_dodge(0.3)) +
-  annotate("text", x = 1, y = 5, label = "A", fontface="bold") +
-  annotate("text", x = 2, y = 5, label = "B", fontface="bold") +
-  annotate("text", x = 3, y = 5, label = "A", fontface="bold") +
-  annotate("text", x = 3, y = 4.0, label =  'bold("Environment***")', parse = TRUE) + 
-  annotate("text", x = 3, y = 3.7, label =  'bold("Line***")', parse = TRUE) +  
-  annotate("text", x = 3, y = 3.5, label =  expression("Environment x Line"^'NS')) +   
+  annotate("text", x = 3, y = 0.7, label =  'bold("Environment***")', parse = TRUE) + 
+  annotate("text", x = 3, y = 0.67, label =  'bold("Line*")', parse = TRUE) +  
+  annotate("text", x = 3, y = 0.64, label =  expression("Environment x Line"^'NS')) +   
   theme_bw() +
   xlab(NULL) + 
-  ylab("Flowers (no.)") +
+  ylab("Flower success (%)") +
   scale_x_discrete(labels=plot_label3)  +
   theme(axis.title.y = element_text(colour = "black", size = 18), 
         axis.text.y = element_text(size=16), 
@@ -432,26 +424,24 @@ G_comb_raw.r <- G_comb_raw[,-1]
 rownames(G_comb_raw.r) <- G_comb_raw[,1]
 
 # set label colours
-traitcolors1 <- rep(NA,8)
+traitcolors1 <- rep(NA,9)
 names(traitcolors1) <- names(G_comb_raw.r)
-traitcolors1[c(3:4)]   <- 'green4' # greenhouse-only
-traitcolors1[c(1:2)]   <- 'darkblue'   # field-only
-traitcolors1[c(5:8)]   <- 'gold3'   # combined field and greenhouse
+traitcolors1[c(4:5)]   <- 'green4' # greenhouse-only
+traitcolors1[c(1:3)]   <- 'darkblue'   # field-only
+traitcolors1[c(6:9)]   <- 'gold3'   # combined field and greenhouse
 
 # compute correlation matrix
 G_comb_raw.r_mat <- cor(G_comb_raw.r, use="pairwise.complete.obs")
 
 # compute the matrix of the p-value
 source('corr_test.R')
-library(psych)
-library(corrplot)
 
 p.mat1 <- cor.mtest(G_comb_raw.r)
 p.mat1.c <- psych::corr.test(G_comb_raw.r, adjust="bonferroni")$p
 
 # get order of columns
 # ord1 <- corrMatOrder(G_comb_raw.r_mat, order="hclust")
-ord1 <- c(3,4,1,2,5,6,7,8)
+ord1 <- c(4,5,1,2,3,6,7,8,9)
 
 # order colours and variables by ord
 traitcolors1.ro <- traitcolors1[ord1]
@@ -508,7 +498,7 @@ corrplot(G_comb_raw.r_mat.o, method = "ellipse", type="lower",
 
 dev.off()
 
-## result: shoot/leaf and red_nod/total_nod are correlated no matter the environment
+## result: shoot/leaf, red_nod/total_nod, and flower/fruit success are correlated regardless of the environment
 ```
 
 ## Corrplot btw traits calculated within environments
@@ -522,29 +512,29 @@ GE_comb_raw.r <- GE_comb_raw.w[ , -1]
 rownames(GE_comb_raw.r) <- GE_comb_raw.w[ , 1]
 
 # select columns of interest
-GE_comb_raw.rs <- GE_comb_raw.r[,c(1:2,5:8,11:16,19:24,27:32,37:40)]
+GE_comb_raw.rs <- GE_comb_raw.r[,c(1:2,6:9,12:18,21:27,30:36,42:45)]
 # reorder cols
-GE_comb_raw.rs <- GE_comb_raw.rs[,c(6,5,4,3,2,1,
-                                    12,11,10,9,8,7,
-                                    18,17,16,15,14,13,
-                                    24,23,22,21,20,19,
-                                    28,27,26,25)]
+GE_comb_raw.rs <- GE_comb_raw.rs[,c(6,5,4,3,2,1, ## GH
+                                    13,12,11,10,9,8,7, ## plot1
+                                    20,19,18,17,16,15,14, ## plot2
+                                    27,26,25,24,23,22,21, ## plot3
+                                    31,30,29,28)] ## plot4
 
 # rename cols
 names(GE_comb_raw.rs) <- c("GH_shoot","GH_survival","GH_leaf","GH_nod","GH_choice","GH_red_nod",
-                          "p1_shoot","p1_survival","p1_leaf","p1_nod","p1_flower","p1_fruit",
-                          "p2_shoot","p2_survival","p2_leaf","p2_nod","p2_flower","p2_fruit",
-                          "p3_shoot","p3_survival","p3_leaf","p3_nod","p3_flower","p3_fruit",
+                          "p1_shoot","p1_survival","p1_leaf","p1_nod","p1_flower_succ","p1_fruits","p1_fruit_succ",
+                          "p2_shoot","p2_survival","p2_leaf","p2_nod","p2_flower_succ","p2_fruits","p2_fruit_succ",
+                          "p3_shoot","p3_survival","p3_leaf","p3_nod","p3_flower_succ","p3_fruits","p3_fruit_succ",
                           "p4_shoot","p4_survival","p4_leaf","p4_nod")
 
 # set label colours
-traitcolors2 <- rep(NA,28)
+traitcolors2 <- rep(NA,31)
 names(traitcolors2) <- names(GE_comb_raw.rs)
 traitcolors2[c(1:6)]   <- 'green4' # greenhouse
-traitcolors2[c(7:12)]   <- 'darkred'   # field plot 1
-traitcolors2[c(13:18)]   <- 'darkblue'   # field plot 2
-traitcolors2[c(19:24)]   <- 'darkmagenta'   # field plot 3
-traitcolors2[c(25:28)]   <- 'darkgoldenrod'   # field plot 4
+traitcolors2[c(7:13)]   <- 'darkred'   # field plot 1
+traitcolors2[c(14:20)]   <- 'darkblue'   # field plot 2
+traitcolors2[c(21:27)]   <- 'darkmagenta'   # field plot 3
+traitcolors2[c(28:31)]   <- 'darkgoldenrod'   # field plot 4
 
 # compute correlation matrix
 GE_comb_raw.r_mat <- cor(GE_comb_raw.rs, use="pairwise.complete.obs")
