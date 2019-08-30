@@ -319,6 +319,7 @@ reg_sel_comb1 <- cbind(reg_sel_survival, reg_sel_shoot, reg_sel_leaf)
 reg_sel_comb2 <- cbind(reg_sel_flower, reg_sel_fruit, reg_sel_fruit_succ)
 reg_sel_all <- rbind(reg_sel_comb1, reg_sel_comb2)
 write.csv(reg_sel_all, "reg_sel_win_env.csv")
+<<<<<<< HEAD
 ```
 
 ## Plots for selection analyses
@@ -1604,3 +1605,6 @@ save_plot("selection by environment - flower.pdf", fig3,
           )
 
 ```
+=======
+```
+>>>>>>> 5007b2a4a56c88f113d0aee45a47c1b3b58010f2
