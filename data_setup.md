@@ -1,7 +1,7 @@
 data\_setup
 ================
 Rebecca Batstone
-2019-08-28
+2019-09-01
 
 Load packages
 -------------
@@ -11,7 +11,6 @@ Load packages
 library("tidyverse") ## includes ggplot2, dplyr, readr, stringr
 library("cowplot") ## paneled graphs
 library("psych") ## pairs.panels function, correlations of raw data
-library("Amelia") ## missmap function, examine missing data
 ```
 
 Spreadsheets
@@ -19,7 +18,7 @@ Spreadsheets
 
 ``` r
 # From Anna's greehouse experiment
-greenhouse <- read_csv("SimonsenStinchcombe_Proc.Roy.Soc.B_2014_rawdata_pluslinename.csv")
+greenhouse <- read_csv("./raw_data/SimonsenStinchcombe_Proc.Roy.Soc.B_2014_rawdata_pluslinename.csv")
 
 # set variable types:
 greenhouse$line <- greenhouse$family
@@ -83,7 +82,7 @@ str(GH_mix)
 # Field dataset
 
 # after updating merged spreadsheet:
-field <- read_csv("field_combined_21March2019.csv", 
+field <- read_csv("./raw_data/field_combined_21March2019.csv", 
     col_types = cols(batch = col_factor(levels = c("one", 
         "two")), no = col_character(), plot = col_factor(levels = c("plot_1", 
         "plot_2", "plot_3", "plot_4"))))
@@ -327,14 +326,6 @@ plot4 <- ggplot(F_GH_ds_prop.w, aes(x=GH, y=plot_4)) +
 
     ## NULL
 
-### Examine missing data
-
-``` r
-missmap(F_GH_ds, main = "Missing values vs observed")
-```
-
-![](data_setup_files/figure-markdown_github/missing-1.png)
-
 Traits without sufficient replication:
 
 -   flower and fruit: only measured in field, not enough reps for plot 4 and line WT39
@@ -400,13 +391,13 @@ Save files for downstream analyses
 ----------------------------------
 
 ``` r
-save(F_GH_ds, file = "./combined_field_GH_28Aug2019.Rdata")
-save(shoot_cc, file = "./dataset_cleaned/shoot_cleaned.Rdata")
-save(survival_cc, file="./dataset_cleaned/survival_cleaned.Rdata")
-save(leaf_cc, file="./dataset_cleaned/leaves_cleaned.Rdata")
-save(nod_cc, file="./dataset_cleaned/nods_cleaned.Rdata")
-save(choice_cc, file="./dataset_cleaned/choice_cleaned.Rdata")
-save(red_nod_cc, file="./dataset_cleaned/red_nod_cleaned.Rdata")
-save(flower_cc, file="./dataset_cleaned/flowers_cleaned.Rdata")
-save(fruit_cc, file="./dataset_cleaned/fruits_cleaned.Rdata")
+save(F_GH_ds, file = "./raw_data/combined_field_GH_28Aug2019.Rdata")
+save(shoot_cc, file = "./raw_data/dataset_cleaned/shoot_cleaned.Rdata")
+save(survival_cc, file="./raw_data/dataset_cleaned/survival_cleaned.Rdata")
+save(leaf_cc, file="./raw_data/dataset_cleaned/leaves_cleaned.Rdata")
+save(nod_cc, file="./raw_data/dataset_cleaned/nods_cleaned.Rdata")
+save(choice_cc, file="./raw_data/dataset_cleaned/choice_cleaned.Rdata")
+save(red_nod_cc, file="./raw_data/dataset_cleaned/red_nod_cleaned.Rdata")
+save(flower_cc, file="./raw_data/dataset_cleaned/flowers_cleaned.Rdata")
+save(fruit_cc, file="./raw_data/dataset_cleaned/fruits_cleaned.Rdata")
 ```

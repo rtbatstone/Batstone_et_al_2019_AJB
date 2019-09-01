@@ -1,7 +1,7 @@
 data\_analyses\_heritability
 ================
 Rebecca Batstone
-2019-08-28
+2019-09-01
 
 Load packages
 -------------
@@ -19,15 +19,15 @@ Spreadsheets
 
 ``` r
 # created using "data_setup.Rmd"
-load("./combined_field_GH_28Aug2019.Rdata")
-load("./dataset_cleaned/shoot_cleaned.Rdata")
-load("./dataset_cleaned/survival_cleaned.Rdata")
-load("./dataset_cleaned/leaves_cleaned.Rdata")
-load("./dataset_cleaned/nods_cleaned.Rdata")
-load("./dataset_cleaned/choice_cleaned.Rdata")
-load("./dataset_cleaned/red_nod_cleaned.Rdata")
-load("./dataset_cleaned/flowers_cleaned.Rdata")
-load("./dataset_cleaned/fruits_cleaned.Rdata")
+load("./raw_data/combined_field_GH_28Aug2019.Rdata")
+load("./raw_data/dataset_cleaned/shoot_cleaned.Rdata")
+load("./raw_data/dataset_cleaned/survival_cleaned.Rdata")
+load("./raw_data/dataset_cleaned/leaves_cleaned.Rdata")
+load("./raw_data/dataset_cleaned/nods_cleaned.Rdata")
+load("./raw_data/dataset_cleaned/choice_cleaned.Rdata")
+load("./raw_data/dataset_cleaned/red_nod_cleaned.Rdata")
+load("./raw_data/dataset_cleaned/flowers_cleaned.Rdata")
+load("./raw_data/dataset_cleaned/fruits_cleaned.Rdata")
 ```
 
 Models to calculate heritability
@@ -247,7 +247,15 @@ herit_vc_comb_rb$env <- c(rep("GH", 5*3), rep("plot_1", 3*3), rep("plot_2", 3*3)
                           rep("plot_1",3), rep("plot_2", 3), rep("plot_3",3))
 herit_vc_comb_rb$trait <- c(rep("shoot",3), rep("leaf",3), rep("nod",3), rep("choice",3), rep("red_nod",3),
                             rep(c(rep("shoot",3),rep("leaf",3),rep("nod",3)), 4),rep("fruit", 3*3))
-write.csv(herit_vc_comb_rb, "heritability_win_env.csv", row.names = FALSE)
+
+herit_vc_comb_Vg <- herit_vc_comb_rb %>%
+  group_by(env, trait) %>%
+  mutate(V_tot = sum(vcov)) %>%
+  ungroup(.)  %>%
+  mutate(V_prop = vcov/V_tot) %>%
+  as.data.frame(.)
+
+write.csv(herit_vc_comb_Vg, "./heritability_analyses/heritability_win_env.csv", row.names = FALSE)
 
 # Chisq test for line term
 herit_cs_comb <- list(herit_out_GH[[1]][[2]][[4]], herit_out_GH[[1]][[3]][[4]], herit_out_GH[[1]][[4]][[4]],
@@ -265,5 +273,23 @@ herit_cs_comb_rb$env <- c(rep("GH", 5*2), rep("plot_1", 3*2), rep("plot_2", 3*2)
                           rep("plot_1",2), rep("plot_2", 2), rep("plot_3",2))
 herit_cs_comb_rb$trait <- c(rep("shoot",2), rep("leaf",2), rep("nod",2), rep("choice",2), rep("red_nod",2),
                             rep(c(rep("shoot",2),rep("leaf",2),rep("nod",2)), 4),rep("fruit", 3*2))
-write.csv(herit_cs_comb_rb, "Chisq_win_env.csv", row.names = FALSE)
+
+herit_cs_comb_rb$pval_corr <- herit_cs_comb_rb$Pr..Chisq./2
+
+write.csv(herit_cs_comb_rb, "./heritability_analyses/Chisq_win_env.csv", row.names = FALSE)
+
+# filter to Chisq res
+herit_cs_comb_f <- herit_cs_comb_rb %>%
+  filter(Chisq != "NA")
+
+# combine Vg and Chisq into one
+herit_vc_comb_Vg$env_trait <- do.call(paste, c(herit_vc_comb_Vg[c("env","trait")], sep = "_"))
+herit_cs_comb_f$env_trait <- do.call(paste, c(herit_cs_comb_f[c("env","trait")], sep = "_"))
+
+herit_all <- merge(y=herit_vc_comb_Vg, x=herit_cs_comb_f, by = "env_trait")
+
+herit_all_line <- herit_all %>%
+  filter(grp == "line")
+
+write.csv(herit_all_line, "./heritability_analyses/heritability_comb.csv", row.names = FALSE)
 ```

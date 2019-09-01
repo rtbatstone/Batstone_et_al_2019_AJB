@@ -325,15 +325,7 @@ write.csv(reg_sel_all, "./SxE_analyses_outputs/reg_sel_win_env.csv")
 ```{r selection_plots}
 # plots
 
-# assign colours to plots
-
-plot_colours <- c('green4','firebrick3', 'darkblue','darkorchid', 'darkgoldenrod')
-names(plot_colours) <- levels(GE_comb_raw_sel$env)
-colScale <- scale_colour_manual(name = "Environment", values = plot_colours, labels = env_labeller3)
-
-## shoot
-
-env_names3 <- list(
+env_names <- list(
   'GH'="Greenhouse",
   'plot_1'="Plot 1",
   'plot_2'="Plot 2",
@@ -341,9 +333,14 @@ env_names3 <- list(
   'plot_4'="Plot 4"
 )
 
-env_labeller3 <- function(variable,value){
-  return(env_names3[value])
+env_labeller <- function(variable,value){
+  return(env_names[value])
 }
+
+# assign colours to plots
+plot_colours <- c('green4','firebrick3', 'darkblue','darkorchid', 'darkgoldenrod')
+names(plot_colours) <- levels(GE_comb_raw_sel$env)
+colScale <- scale_colour_manual(name = "Environment", values = plot_colours, labels = env_labeller)
 
 # define colours for plots
 GH <- "green4"

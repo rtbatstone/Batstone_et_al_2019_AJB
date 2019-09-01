@@ -1,7 +1,7 @@
 data\_analyses\_SxE
 ================
 Rebecca Batstone
-2019-08-28
+2019-09-01
 
 Load packages
 -------------
@@ -20,9 +20,9 @@ Load raw means
 # created using "data_analyses_raw_means.Rmd"
 
 # mean across environments
-load("./G_combined_raw.Rdata")
+load("./raw_means/G_combined_raw.Rdata")
 ## mean within each environment:
-load("./GxE_combined_raw.Rdata")
+load("./raw_means/GxE_combined_raw.Rdata")
 ```
 
 Set to effects contrasts
@@ -231,8 +231,8 @@ SxE_lin_comp <- cbind(SxE_lin_aov1, SxE_lin_aov1a,
 SxE_quad_comp <- cbind(SxE_quad_aov1, SxE_quad_aov1a,
                        SxE_quad_aov2, SxE_quad_aov3) ## compare global models to within-environment models
 
-write.csv(SxE_lin_comp, "SxE_res_lin_comp.csv")
-write.csv(SxE_quad_comp, "SxE_res_quad_comp.csv")
+write.csv(SxE_lin_comp, "./SxE_analyses_outputs/SxE_res_lin_comp.csv")
+write.csv(SxE_quad_comp, "./SxE_analyses_outputs/SxE_res_quad_comp.csv")
 ```
 
 Selection coefficients/gradients within each environment
@@ -323,7 +323,6 @@ sel_out2 <- lapply(env.list2, FUN = function(e){
 
 ``` r
 # Combine dfs (ANOVA res)
-
 ANOVA_sel_survival <- rbind(sel_out1[[1]][[2]][[4]],sel_out1[[1]][[2]][[5]], ## GH
                             sel_out1[[2]][[2]][[4]],sel_out1[[2]][[2]][[5]], ## plot_1
                             sel_out1[[3]][[2]][[4]],sel_out1[[3]][[2]][[5]], ## plot_2
@@ -357,7 +356,7 @@ ANOVA_sel_fruit_succ <- rbind(sel_out2[[1]][[4]][[4]],sel_out2[[1]][[4]][[5]],
 ANOVA_sel_comb1 <- cbind(ANOVA_sel_survival, ANOVA_sel_shoot, ANOVA_sel_leaf)
 ANOVA_sel_comb2 <- cbind(ANOVA_sel_flower, ANOVA_sel_fruit, ANOVA_sel_fruit_succ)
 ANOVA_sel_all <- rbind(ANOVA_sel_comb1, ANOVA_sel_comb2)
-write.csv(ANOVA_sel_all, "ANOVA_sel_win_env.csv")
+write.csv(ANOVA_sel_all, "./SxE_analyses_outputs/ANOVA_sel_win_env.csv")
 
 # combine dfs (regression res)
 reg_sel_survival <- rbind(sel_out1[[1]][[2]][[2]]$coefficients, ## GH
@@ -393,5 +392,241 @@ reg_sel_fruit_succ <- rbind(sel_out2[[1]][[4]][[2]]$coefficients,
 reg_sel_comb1 <- cbind(reg_sel_survival, reg_sel_shoot, reg_sel_leaf)
 reg_sel_comb2 <- cbind(reg_sel_flower, reg_sel_fruit, reg_sel_fruit_succ)
 reg_sel_all <- rbind(reg_sel_comb1, reg_sel_comb2)
-write.csv(reg_sel_all, "reg_sel_win_env.csv")
+write.csv(reg_sel_all, "./SxE_analyses_outputs/reg_sel_win_env.csv")
+```
+
+Plots for selection analyses
+----------------------------
+
+``` r
+# plots
+
+env_names <- list(
+  'GH'="Greenhouse",
+  'plot_1'="Plot 1",
+  'plot_2'="Plot 2",
+  'plot_3'="Plot 3",
+  'plot_4'="Plot 4"
+)
+
+env_labeller <- function(variable,value){
+  return(env_names[value])
+}
+
+# assign colours to plots
+plot_colours <- c('green4','firebrick3', 'darkblue','darkorchid', 'darkgoldenrod')
+names(plot_colours) <- levels(GE_comb_raw_sel$env)
+colScale <- scale_colour_manual(name = "Environment", values = plot_colours, labels = env_labeller)
+
+# define colours for plots
+GH <- "green4"
+plot_1 <- "firebrick3"
+plot_2 <- "darkblue"
+plot_3 <- "darkorchid"
+plot_4 <- "darkgoldenrod"
+
+# create plotting function for facetted plots across environments
+
+# shoot
+
+plot_sel_all_fun <- function(df, trait){
+
+(plot <- ggplot(data=df, aes(x=stand_nod, y=get(trait), colour= env)) +
+  geom_smooth(method=lm, se=FALSE, aes(colour = env), formula = y ~ x, linetype = 1) +
+  geom_point(size=4) +
+  theme_bw() + 
+  colScale +  
+  xlab("Standardized nodules") + 
+  ylab(paste(trait)) +
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_blank(),
+        legend.text = element_text(colour="black", size=18),
+        legend.background = element_blank(),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+  
+  return(plot)
+  
+}
+
+rel_traits <- c("rel_surv","rel_shoot","rel_leaf","rel_flower","rel_fruit","rel_fruit_succ")
+abs_traits <- c("surv","shoot","leaf","flower_succ","fruits","fruit_succ")
+
+plot_sel_all_op1 <- lapply(abs_traits, plot_sel_all_fun, df = GE_comb_raw_sel) ## absolute fitness, global nods
+plot_sel_all_op2 <- lapply(rel_traits, plot_sel_all_fun, df = GE_comb_raw_sel) ## global fitness, global nods
+plot_sel_all_op3 <- lapply(rel_traits, plot_sel_all_fun, df = GE_comb_raw_sel2) ## within all
+
+# cowplots
+
+# put all four plots into one
+fig_base <- plot_grid(plot_sel_all_op1[[1]], plot_sel_all_op2[[1]], plot_sel_all_op3[[1]],
+                      plot_sel_all_op1[[2]], plot_sel_all_op2[[2]], plot_sel_all_op3[[2]],
+                      plot_sel_all_op1[[3]], plot_sel_all_op2[[3]], plot_sel_all_op3[[3]],
+          ncol = 3,
+          nrow = 3,
+          align = "hv",
+          labels = NULL)
+```
+
+    ## Warning: Removed 10 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 10 rows containing missing values (geom_point).
+
+    ## Warning: Removed 10 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 10 rows containing missing values (geom_point).
+
+    ## Warning: Removed 10 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 10 rows containing missing values (geom_point).
+
+    ## Warning: Removed 20 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 20 rows containing missing values (geom_point).
+
+    ## Warning: Removed 20 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 20 rows containing missing values (geom_point).
+
+    ## Warning: Removed 20 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 20 rows containing missing values (geom_point).
+
+    ## Warning: Removed 10 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 10 rows containing missing values (geom_point).
+
+    ## Warning: Removed 10 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 10 rows containing missing values (geom_point).
+
+    ## Warning: Removed 10 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 10 rows containing missing values (geom_point).
+
+``` r
+save_plot("./SxE_analyses_outputs/SxE_all.pdf", fig_base,
+          ncol = 3, # we're saving a grid plot of 2 columns
+          nrow = 3, # and 3 rows
+          # each individual subplot should have an aspect ratio of 1.3
+          base_aspect_ratio = 1.3
+          )
+
+# Within-env selection
+plot_sel_win_fun <- function(df, envir){
+  
+  env.out<-paste(envir)
+  
+   df.env <- df %>%
+   filter(env == envir) %>%
+   droplevels(.)
+  
+   df.lm <- df.env[ , c("rel_shoot", "stand_nod")]
+   names(df.lm) <- c("y", "x")
+
+(plot <- ggplot(data = df.env, aes(x=stand_nod, y=rel_shoot)) +
+  geom_smooth(method=lm, se=TRUE, colour="black", formula = y ~ x, linetype = 1) +
+  geom_point(size=4, colour = get(envir)) +
+  geom_text(aes(label=line), colour="black") +
+  theme_bw() + 
+  ggtitle(paste(envir)) +  
+  xlab(NULL) + 
+  ylab(NULL) +
+  theme(axis.title.y = element_text(colour = "black", size = 24), 
+        axis.text.y = element_text(size=20), 
+        axis.title.x = element_text(colour = "black", size = 24), 
+        axis.text.x = element_text(size=20), 
+        strip.text = element_text(size=14, face="bold"),
+        legend.position="none",
+        legend.title = element_text(colour="black", size=20, face="bold"),
+        legend.text = element_text(colour="black", size=18),
+        plot.title = element_text(hjust=0.5, size=16, face = "bold"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())) 
+
+return(list(env.out, plot))
+
+}
+
+# specify vars to loop over
+env.list <- unique(GE_comb_raw_sel$env)
+
+plot_sel_win <- lapply(env.list, plot_sel_win_fun, df = GE_comb_raw_sel)
+
+## put them together in cowplot
+
+SxE_shoot_all <- plot_sel_all_op2[[2]] + 
+  xlab(NULL) + ylab(NULL) + 
+  ggtitle("All environments") +
+  theme(legend.position=c(0.8,0.8))
+SxE_shoot_GH <- plot_sel_win[[1]][[2]] + ggtitle("Greenhouse")
+SxE_shoot_p1 <- plot_sel_win[[2]][[2]] + ggtitle("Plot 1")
+SxE_shoot_p2 <- plot_sel_win[[3]][[2]] + ggtitle("Plot 2")
+SxE_shoot_p3 <- plot_sel_win[[4]][[2]] + ggtitle("Plot 3")
+SxE_shoot_p4 <- plot_sel_win[[5]][[2]] + ggtitle("Plot 4")
+
+(fig_base <- plot_grid(SxE_shoot_all, SxE_shoot_GH, SxE_shoot_p1, SxE_shoot_p2,
+                        SxE_shoot_p3, SxE_shoot_p4,
+          ncol = 2,
+          nrow = 3,
+          align = "hv"))
+```
+
+    ## Warning: Removed 20 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 20 rows containing missing values (geom_point).
+
+    ## Warning: Removed 4 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 4 rows containing missing values (geom_point).
+
+    ## Warning: Removed 4 rows containing missing values (geom_text).
+
+    ## Warning: Removed 4 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 4 rows containing missing values (geom_point).
+
+    ## Warning: Removed 4 rows containing missing values (geom_text).
+
+    ## Warning: Removed 4 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 4 rows containing missing values (geom_point).
+
+    ## Warning: Removed 4 rows containing missing values (geom_text).
+
+    ## Warning: Removed 4 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 4 rows containing missing values (geom_point).
+
+    ## Warning: Removed 4 rows containing missing values (geom_text).
+
+    ## Warning: Removed 4 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 4 rows containing missing values (geom_point).
+
+    ## Warning: Removed 4 rows containing missing values (geom_text).
+
+![](data_analyses_SxE_files/figure-markdown_github/selection_plots-1.png)
+
+``` r
+fig.xaxis <- add_sub(fig_base, "Standardized nodules", size = 20, hjust = 0.5)
+
+# add on the shared y axis title
+fig.yaxis <- ggdraw() + draw_label("Relativized shoot biomass", size = 20, angle=90)
+
+# put them together
+fig <- plot_grid(fig.yaxis, fig.xaxis, ncol=2, rel_widths=c(0.03, 1)) 
+
+save_plot("./figures/SxE_shoot.pdf", fig,
+          ncol = 2, ## we're saving a grid plot of 2 columns
+          nrow = 3, ## and 3 rows
+          # each individual subplot should have an aspect ratio of 1.3
+          base_aspect_ratio = 1.3
+          )
 ```

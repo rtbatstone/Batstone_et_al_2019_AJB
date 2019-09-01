@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Load packages
 
-```{r setup, warning=FALSE, message=FALSE}
+```{r packages, warning=FALSE, message=FALSE}
 # packages
 library("tidyverse") ## includes ggplot2, dplyr, readr, stringr
 library("cowplot") ## paneled graphs

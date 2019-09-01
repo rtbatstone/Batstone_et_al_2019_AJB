@@ -1,7 +1,7 @@
 data\_analyses\_raw\_means
 ================
 Rebecca Batstone
-2019-08-28
+2019-09-01
 
 Load packages
 -------------
@@ -21,15 +21,15 @@ Spreadsheets
 
 ``` r
 # created using "data_setup.Rmd"
-load("./combined_field_GH_28Aug2019.Rdata")
-load("./dataset_cleaned/shoot_cleaned.Rdata")
-load("./dataset_cleaned/survival_cleaned.Rdata")
-load("./dataset_cleaned/leaves_cleaned.Rdata")
-load("./dataset_cleaned/nods_cleaned.Rdata")
-load("./dataset_cleaned/choice_cleaned.Rdata")
-load("./dataset_cleaned/red_nod_cleaned.Rdata")
-load("./dataset_cleaned/flowers_cleaned.Rdata")
-load("./dataset_cleaned/fruits_cleaned.Rdata")
+load("./raw_data/combined_field_GH_28Aug2019.Rdata")
+load("./raw_data/dataset_cleaned/shoot_cleaned.Rdata")
+load("./raw_data/dataset_cleaned/survival_cleaned.Rdata")
+load("./raw_data/dataset_cleaned/leaves_cleaned.Rdata")
+load("./raw_data/dataset_cleaned/nods_cleaned.Rdata")
+load("./raw_data/dataset_cleaned/choice_cleaned.Rdata")
+load("./raw_data/dataset_cleaned/red_nod_cleaned.Rdata")
+load("./raw_data/dataset_cleaned/flowers_cleaned.Rdata")
+load("./raw_data/dataset_cleaned/fruits_cleaned.Rdata")
 ```
 
 Calculate raw means
@@ -222,9 +222,9 @@ Save raw means
 
 ``` r
 # mean across environments
-save(G_comb_raw, file = "./G_combined_raw.Rdata")
+save(G_comb_raw, file = "./raw_means/G_combined_raw.Rdata")
 ## mean within each environment:
-save(GE_comb_raw, file = "./GxE_combined_raw.Rdata")
+save(GE_comb_raw, file = "./raw_means/GxE_combined_raw.Rdata")
 ```
 
 Reaction norm plots (same traits across env)
@@ -434,7 +434,7 @@ fig_base1 <- plot_grid(plot.sum_surv, plot.sum_shoot, plot.sum_leaf, plot.sum_no
 
 fig1 <- add_sub(fig_base1, "Environment", size = 20, hjust = 0.5)
 
-save_plot("rxn_norms.pdf", fig1,
+save_plot("./figures/rxn_norms.pdf", fig1,
           ncol = 2, # we're saving a grid plot of 2 columns
           nrow = 3, # and 3 rows
           # each individual subplot should have an aspect ratio of 1.3
@@ -491,7 +491,7 @@ bg_colors_upper1 <- bg_colors_upper1[upper.tri(bg_colors_upper1, diag=T)]
 
 ### and the plot
 
-pdf('corrplot_over_env.pdf', width = 10, height = 10, pointsize = 14)
+pdf('./figures/corrplot_over_env.pdf', width = 10, height = 10, pointsize = 14)
 
 par(xpd = TRUE)
 
@@ -599,7 +599,7 @@ diag(bg_colors_upper2) <- "white" ## if the diagonal values shall be white
 # select colors from lower/upper2 part of matrix:
 bg_colors_upper2 <- bg_colors_upper2[upper.tri(bg_colors_upper2, diag=T)]
 
-pdf('corrplot_p-adjust_all.pdf', width = 16, height = 16, pointsize = 15)
+pdf('./figures/corrplot_p-adjust_all.pdf', width = 16, height = 16, pointsize = 15)
 
 cex.before <- par("cex")
 par(cex = 0.7)
@@ -627,12 +627,12 @@ dev.off()
 Resulting corrplots
 -------------------
 
-<img src="./corrplot_over_env.pdf" alt="Correlation plot of traits averaged across environments" width="1\linewidth" />
+<img src="./figures/corrplot_over_env.pdf" alt="Correlation plot of traits averaged across environments" width="1\linewidth" />
 <p class="caption">
 Correlation plot of traits averaged across environments
 </p>
 
-<img src="./corrplot_p-adjust_all.pdf" alt="Correlation plot of traits averaged within each environments" width="1\linewidth" />
+<img src="./figures/corrplot_p-adjust_all.pdf" alt="Correlation plot of traits averaged within each environments" width="1\linewidth" />
 <p class="caption">
 Correlation plot of traits averaged within each environments
 </p>
