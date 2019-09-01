@@ -248,7 +248,6 @@ sel_out2 <- lapply(env.list2, FUN = function(e){
 })
 
 # Combine dfs (ANOVA res)
-
 ANOVA_sel_survival <- rbind(sel_out1[[1]][[2]][[4]],sel_out1[[1]][[2]][[5]], ## GH
                             sel_out1[[2]][[2]][[4]],sel_out1[[2]][[2]][[5]], ## plot_1
                             sel_out1[[3]][[2]][[4]],sel_out1[[3]][[2]][[5]], ## plot_2

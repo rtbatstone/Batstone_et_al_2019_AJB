@@ -1,0 +1,57 @@
+plot,line,loc,batch,nod_ID,plant,seq,category,blast_hit
+P1,AC20,Q09,one,7.1,p7,F,bacillus,Bacillus sp. N5/665
+P1,HTR30,A12,two,8,p8,FR,meliloti,Sinorhizobium meliloti strain RhOF57
+P1,HTR30,A12,two,9,p9,FR,meliloti,Sinorhizobium meliloti strain WI6
+P1,AC3,J17,two,9.3,p9,R,meliloti,Sinorhizobium meliloti strain NBRC 14782
+P1,FOR43,N17,two,19,p19,R,meliloti,Sinorhizobium meliloti strain CCBAU 83383
+P1,KA24,C13,one,21,p21,FR,meliloti,Sinorhizobium meliloti strain WE2
+P1,WT18,M01,two,23,p23,F,meliloti,Sinorhizobium meliloti strain LB32
+P1,WT18,M01,two,23.1,p23,F,meliloti,Sinorhizobium meliloti strain NBRC 14782
+P1,FZ17,O17,two,24,p24,FR,meliloti,Sinorhizobium meliloti strain RhOF57
+P2,RBE38,B12,one,30.1,p30,F,meliloti,Sinorhizobium meliloti strain MR-30
+P2,AC20,B13,one,31.2,p31,FR,medicae,Sinorhizobium medicae strain MP-7H1
+P2,HTD28,E05,two,32,p32,FR,medicae,Sinorhizobium medicae strain Cl: 1-14
+P2,AC3,L07,two,34.4,p34,FR,meliloti,Sinorhizobium meliloti strain NBRC 14782
+P2,FOR26,N12,one,35.4,p35,F,Ensifer,Ensifer adhaerens strain PZG_S11
+P1,DE15,Q17,two,36,p36,FR,meliloti,Sinorhizobium meliloti strain WF4
+P1,DE15,Q17,two,36.1,p36,R,meliloti,Sinorhizobium meliloti strain SMX24-1
+P1,DE15,Q17,two,36.4,p36,FR,meliloti,Sinorhizobium meliloti strain WF4
+P1,WR34,P02,two,37.1,p37,R,Ensifer,Ensifer adhaerens strain PSB19
+P1,WR34,P02,two,37.3,p37,FR,medicae,Sinorhizobium medicae strain MP-7H1
+P1,WR31,H13,two,40.1,p40,F,meliloti,Sinorhizobium meliloti strain NBRC 14782
+P2,FZ24,K06,two,41,p41,R,meliloti,Sinorhizobium meliloti strain yangyueN1
+P2,FZ24,K06,two,41.1,p41,F,meliloti,Sinorhizobium meliloti strain NBRC 14782
+P2,FZ24,K06,two,41.2,p41,R,medicae,Sinorhizobium medicae strain MP-7H1
+P2,HTD2,N16,two,45.2,p45,FR,meliloti,Sinorhizobium meliloti strain RhOF57
+P2,DU17,D06,two,48.1,p48,R,medicae,Sinorhizobium medicae strain MP-7H1
+P4,FOR26,K05,one,48.2,p48,FR,medicae,Sinorhizobium medicae strain MP-7H1
+P2,DU17,D06,two,49.2,p49,FR,medicae,Sinorhizobium medicae strain MP-7H1
+P2,DU17,D06,two,50.1,p50,R,meliloti,Sinorhizobium meliloti strain EAS1-2
+P4,HTR30,E08,two,52.1,p52,R,medicae,Sinorhizobium medicae strain MP-7H1
+P4,HTR30,E08,two,52.2,p52,R,medicae,Sinorhizobium medicae strain MP-7H1
+P4,HTD28,O09,two,54.1,p54,FR,medicae,Sinorhizobium medicae
+P4,HTD28,O09,two,54.3,p54,FR,meliloti,Sinorhizobium meliloti strain RhOF57
+P4,FZ19,J12,two,57.1,p57,F,medicae,Sinorhizobium medicae strain 11-3 21a
+P4,DE7,L04,one,59.2,p59,FR,meliloti,Sinorhizobium meliloti strain WF4
+P4,HTR25,E07,one,60.1,p60,FR,meliloti,Sinorhizobium meliloti strain Z15
+P4,HTR25,E07,one,60.2,p60,R,medicae,Sinorhizobium medicae strain MP-7H1
+P4,FZ24,L14,two,62.1,p62,FR,meliloti,Sinorhizobium meliloti strain SF3.21
+P4,KA7,G06,one,65.2,p65,FR,meliloti,Sinorhizobium meliloti strain WC6
+P4,RBE34,O03,one,67.4,p67,F,medicae,Sinorhizobium medicae
+P4,RBE34,O03,one,67.4,p67,F,medicae,Sinorhizobium medicae strain MP-7H1
+P4,KA16,M11,two,69,p69,FR,medicae,Sinorhizobium medicae strain MP-7H1
+P4,KA16,M11,two,69.1,p69,FR,medicae,Sinorhizobium medicae strain 11-3 21a
+P4,WT18,K12,one,77.5,p77,F,medicae,Sinorhizobium medicae
+P3,HTD2,E04,one,78.2,p78,FR,medicae,Sinorhizobium medicae strain MP-7H1
+P3,KA24,O05,one,81,p81,R,meliloti,Sinorhizobium meliloti strain HE9
+P3,KA24,O05,one,81.1,p81,FR,meliloti,Sinorhizobium meliloti strain NBRC 14782
+P3,FZ24,F14,two,83.2,p83,FR,meliloti,Sinorhizobium meliloti strain WC6
+P3,FZ24,F14,two,83.5,p83,R,meliloti,Sinorhizobium meliloti strain SMX24-1
+P3,FZ17,J11,two,88.5,p88,FR,meliloti,Sinorhizobium meliloti strain LMG 6133
+P3,DE15,H13,two,90,p90,F,bacillus,Paenibacillus naphthalenovorans strain 1418
+P3,DE15,H13,two,90.1,p90,FR,bacillus,Paenibacillus sp. TSY30
+P3,DU4,M14,two,92.2,p92,FR,medicae,Sinorhizobium medicae strain: Cl.1-14
+P2,HTR30,H19,two,105.2,p105,FR,meliloti,Sinorhizobium meliloti strain LMG 6133
+P2,DU4,F10,one,107,p107,FR,meliloti,Sinorhizobium meliloti strain B399
+P2,DU4,F10,one,107.4,p107,FR,meliloti,Sinorhizobium meliloti strain LMG 6133
+P2,FOR43,G17,two,112.2,p112,F,Ensifer,Ensifer sp. 114-B2 16S
