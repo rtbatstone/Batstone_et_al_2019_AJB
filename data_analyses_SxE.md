@@ -1,7 +1,7 @@
 data\_analyses\_SxE
 ================
 Rebecca Batstone
-2019-09-01
+2019-09-02
 
 Load packages
 -------------
@@ -392,7 +392,7 @@ plot_sel_all_fun <- function(df, trait){
   geom_point(size=4) +
   theme_bw() + 
   colScale +  
-  xlab("Standardized nodules") + 
+  xlab(NULL) + 
   ylab(paste(trait)) +
   theme(axis.title.y = element_text(colour = "black", size = 24), 
         axis.text.y = element_text(size=20), 
@@ -416,59 +416,39 @@ abs_traits <- c("surv","shoot","leaf","flower_succ","fruits","fruit_succ")
 
 plot_sel_all_op1 <- lapply(abs_traits, plot_sel_all_fun, df = GE_comb_raw_sel) ## absolute fitness, global nods
 plot_sel_all_op2 <- lapply(rel_traits, plot_sel_all_fun, df = GE_comb_raw_sel) ## global fitness, global nods
-plot_sel_all_op3 <- lapply(rel_traits, plot_sel_all_fun, df = GE_comb_raw_sel2) ## within all
+plot_sel_all_op3 <- lapply(rel_traits, plot_sel_all_fun, df = GE_comb_raw_sel2) ## within fitness, within nods
+plot_sel_all_op4 <- lapply(rel_traits, plot_sel_all_fun, df = GE_comb_raw_sel4) ## within fitness, global nods
+
+# plot specifications
+abs_surv <- plot_sel_all_op1[[1]] + ylab("Absolute \n survival")
+abs_shoot <- plot_sel_all_op1[[2]] + ylab("Absolute \n shoot biomass")
+abs_leaf <- plot_sel_all_op1[[3]] + ylab("Absolute \n leaves") + xlab("Globally-standardized \n nodules")
+
+glob_all_surv <- plot_sel_all_op2[[1]] + ylab("Globally-relativized \n survival")
+glob_all_shoot <- plot_sel_all_op2[[2]] + ylab("Globally-relativized \n shoot biomass")
+glob_all_leaf <- plot_sel_all_op2[[3]] + ylab("Globally-relativized \n leaves") + xlab("Globally-standardized \n nodules")
+
+win_all_surv <- plot_sel_all_op3[[1]] + ylab("Locally-relativized \n survival")
+win_all_shoot <- plot_sel_all_op3[[2]] + ylab("Locally-relativized \n shoot biomass")
+win_all_leaf <- plot_sel_all_op3[[3]] + ylab("Locally-relativized \n leaves ") + xlab("Locally-standardized \n nodules")
+
+win_fit_surv <- plot_sel_all_op4[[1]] + ylab("Locally-relativized \n survival")
+win_fit_shoot <- plot_sel_all_op4[[2]] + ylab("Locally-relativized \n shoot biomass")
+win_fit_leaf <- plot_sel_all_op4[[3]] + ylab("Locally-relativized \n leaves ") + xlab("Globally-standardized \n nodules")
 
 # cowplots
 
 # put all four plots into one
-fig_base <- plot_grid(plot_sel_all_op1[[1]], plot_sel_all_op2[[1]], plot_sel_all_op3[[1]],
-                      plot_sel_all_op1[[2]], plot_sel_all_op2[[2]], plot_sel_all_op3[[2]],
-                      plot_sel_all_op1[[3]], plot_sel_all_op2[[3]], plot_sel_all_op3[[3]],
-          ncol = 3,
+fig_base <- plot_grid(abs_surv, glob_all_surv, win_all_surv, win_fit_surv,
+                      abs_shoot, glob_all_shoot, win_all_shoot, win_fit_shoot,
+                      abs_leaf, glob_all_leaf, win_all_leaf, win_fit_leaf,
+          ncol = 4,
           nrow = 3,
           align = "hv",
           labels = NULL)
-```
 
-    ## Warning: Removed 10 rows containing non-finite values (stat_smooth).
-
-    ## Warning: Removed 10 rows containing missing values (geom_point).
-
-    ## Warning: Removed 10 rows containing non-finite values (stat_smooth).
-
-    ## Warning: Removed 10 rows containing missing values (geom_point).
-
-    ## Warning: Removed 10 rows containing non-finite values (stat_smooth).
-
-    ## Warning: Removed 10 rows containing missing values (geom_point).
-
-    ## Warning: Removed 20 rows containing non-finite values (stat_smooth).
-
-    ## Warning: Removed 20 rows containing missing values (geom_point).
-
-    ## Warning: Removed 20 rows containing non-finite values (stat_smooth).
-
-    ## Warning: Removed 20 rows containing missing values (geom_point).
-
-    ## Warning: Removed 20 rows containing non-finite values (stat_smooth).
-
-    ## Warning: Removed 20 rows containing missing values (geom_point).
-
-    ## Warning: Removed 10 rows containing non-finite values (stat_smooth).
-
-    ## Warning: Removed 10 rows containing missing values (geom_point).
-
-    ## Warning: Removed 10 rows containing non-finite values (stat_smooth).
-
-    ## Warning: Removed 10 rows containing missing values (geom_point).
-
-    ## Warning: Removed 10 rows containing non-finite values (stat_smooth).
-
-    ## Warning: Removed 10 rows containing missing values (geom_point).
-
-``` r
 save_plot("./SxE_analyses_outputs/SxE_all.pdf", fig_base,
-          ncol = 3, # we're saving a grid plot of 2 columns
+          ncol = 4, # we're saving a grid plot of 2 columns
           nrow = 3, # and 3 rows
           # each individual subplot should have an aspect ratio of 1.3
           base_aspect_ratio = 1.3
@@ -541,40 +521,6 @@ SxE_shoot_p4 <- plot_sel_win[[5]][[2]] + ggtitle("Plot 4")
           nrow = 3,
           align = "hv"))
 ```
-
-    ## Warning: Removed 20 rows containing non-finite values (stat_smooth).
-
-    ## Warning: Removed 20 rows containing missing values (geom_point).
-
-    ## Warning: Removed 4 rows containing non-finite values (stat_smooth).
-
-    ## Warning: Removed 4 rows containing missing values (geom_point).
-
-    ## Warning: Removed 4 rows containing missing values (geom_text).
-
-    ## Warning: Removed 4 rows containing non-finite values (stat_smooth).
-
-    ## Warning: Removed 4 rows containing missing values (geom_point).
-
-    ## Warning: Removed 4 rows containing missing values (geom_text).
-
-    ## Warning: Removed 4 rows containing non-finite values (stat_smooth).
-
-    ## Warning: Removed 4 rows containing non-finite values (stat_smooth).
-
-    ## Warning: Removed 4 rows containing missing values (geom_point).
-
-    ## Warning: Removed 4 rows containing missing values (geom_text).
-
-    ## Warning: Removed 4 rows containing non-finite values (stat_smooth).
-
-    ## Warning: Removed 4 rows containing missing values (geom_point).
-
-    ## Warning: Removed 4 rows containing missing values (geom_text).
-
-    ## Warning: Removed 4 rows containing missing values (geom_point).
-
-    ## Warning: Removed 4 rows containing missing values (geom_text).
 
 ![](data_analyses_SxE_files/figure-markdown_github/selection_plots-1.png)
 
