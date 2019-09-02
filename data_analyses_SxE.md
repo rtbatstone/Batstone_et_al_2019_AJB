@@ -126,55 +126,11 @@ SxE_out3 <- lapply(var.list2, SxE_function, df = GE_comb_raw_sel)
     ## [1] "fruits"
     ## [1] "fruit_succ"
 
-### Option 4: rel/stand globally for field plants, but separately for GH plants
-
-### Calculate rel/stand means
+### Option 4: standardize nodules globally, relativize fitness within environment
 
 ``` r
 # calculate relativized and standardized traits
-GE_comb_raw_sel_GH <- GE_comb_raw %>%
-  filter(env == "GH") %>%
-  mutate(rel_surv = surv/mean(surv, na.rm=TRUE),
-         rel_shoot = shoot/mean(shoot, na.rm=TRUE),
-         rel_leaf = leaf/mean(leaf, na.rm=TRUE),
-         rel_flower = flower_succ/mean(flower_succ, na.rm=TRUE),
-         rel_fruit = fruits/mean(fruits, na.rm=TRUE),
-         rel_fruit_succ = fruit_succ/mean(fruit_succ, na.rm=TRUE),
-         stand_nod = (nod - mean(nod, na.rm=TRUE))/sd(nod, na.rm=TRUE)) %>%
-  as.data.frame(.)
-
-GE_comb_raw_sel_field <- GE_comb_raw %>%
-  filter(! env == "GH") %>%
-  mutate(rel_surv = surv/mean(surv, na.rm=TRUE),
-         rel_shoot = shoot/mean(shoot, na.rm=TRUE),
-         rel_leaf = leaf/mean(leaf, na.rm=TRUE),
-         rel_flower = flower_succ/mean(flower_succ, na.rm=TRUE),
-         rel_fruit = fruits/mean(fruits, na.rm=TRUE),
-         rel_fruit_succ = fruit_succ/mean(fruit_succ, na.rm=TRUE),
-         stand_nod = (nod - mean(nod, na.rm=TRUE))/sd(nod, na.rm=TRUE)) %>%
-  as.data.frame(.)
-
-GE_comb_raw_sel4 <- rbind(GE_comb_raw_sel_GH, GE_comb_raw_sel_field)
-```
-
-### Option 4: S x E models
-
-``` r
-SxE_out4 <- lapply(var.list, SxE_function, df = GE_comb_raw_sel4)
-```
-
-    ## [1] "rel_surv"
-    ## [1] "rel_shoot"
-    ## [1] "rel_leaf"
-    ## [1] "rel_flower"
-    ## [1] "rel_fruit"
-    ## [1] "rel_fruit_succ"
-
-### Option 5: standardize nodules globally, relativize fitness within environment
-
-``` r
-# calculate relativized and standardized traits
-GE_comb_raw_sel5 <- GE_comb_raw %>%
+GE_comb_raw_sel4 <- GE_comb_raw %>%
   mutate(stand_nod = (nod - mean(nod, na.rm=TRUE))/sd(nod, na.rm=TRUE)) %>%
   group_by(env) %>%
   mutate(rel_surv = surv/mean(surv, na.rm=TRUE),
@@ -186,10 +142,10 @@ GE_comb_raw_sel5 <- GE_comb_raw %>%
   as.data.frame(.)
 ```
 
-### Option 5: S x E models
+### Option 4: S x E models
 
 ``` r
-SxE_out5 <- lapply(var.list, SxE_function, df = GE_comb_raw_sel5)
+SxE_out4 <- lapply(var.list, SxE_function, df = GE_comb_raw_sel4)
 ```
 
     ## [1] "rel_surv"
@@ -220,11 +176,11 @@ SxE_lin_aov2 <- rbind(SxE_out2[[1]][[3]], SxE_out2[[2]][[3]], SxE_out2[[3]][[3]]
 SxE_quad_aov2 <- rbind(SxE_out2[[1]][[4]], SxE_out2[[2]][[4]], SxE_out2[[3]][[4]], 
                      SxE_out2[[4]][[4]],SxE_out2[[5]][[4]], SxE_out2[[6]][[4]])
 
-SxE_lin_aov3 <- rbind(SxE_out5[[1]][[3]], SxE_out5[[2]][[3]], SxE_out5[[3]][[3]], 
-                     SxE_out5[[4]][[3]],SxE_out5[[5]][[3]], SxE_out5[[6]][[3]])
+SxE_lin_aov3 <- rbind(SxE_out4[[1]][[3]], SxE_out4[[2]][[3]], SxE_out4[[3]][[3]], 
+                     SxE_out4[[4]][[3]],SxE_out4[[5]][[3]], SxE_out4[[6]][[3]])
 
-SxE_quad_aov3 <- rbind(SxE_out5[[1]][[4]], SxE_out5[[2]][[4]], SxE_out5[[3]][[4]], 
-                     SxE_out5[[4]][[4]],SxE_out5[[5]][[4]], SxE_out5[[6]][[4]])
+SxE_quad_aov3 <- rbind(SxE_out4[[1]][[4]], SxE_out4[[2]][[4]], SxE_out4[[3]][[4]], 
+                     SxE_out4[[4]][[4]],SxE_out4[[5]][[4]], SxE_out4[[6]][[4]])
 
 SxE_lin_comp <- cbind(SxE_lin_aov1, SxE_lin_aov1a,
                       SxE_lin_aov2, SxE_lin_aov3) ## compare global models to within-environment models
@@ -531,7 +487,6 @@ plot_sel_win_fun <- function(df, envir){
    names(df.lm) <- c("y", "x")
 
 (plot <- ggplot(data = df.env, aes(x=stand_nod, y=rel_shoot)) +
-  geom_smooth(method=lm, se=TRUE, colour="black", formula = y ~ x, linetype = 1) +
   geom_point(size=4, colour = get(envir)) +
   geom_text(aes(label=line), colour="black") +
   theme_bw() + 
@@ -559,17 +514,26 @@ env.list <- unique(GE_comb_raw_sel$env)
 
 plot_sel_win <- lapply(env.list, plot_sel_win_fun, df = GE_comb_raw_sel)
 
-## put them together in cowplot
+# specify plot-specific parameters
 
 SxE_shoot_all <- plot_sel_all_op2[[2]] + 
   xlab(NULL) + ylab(NULL) + 
   ggtitle("All environments") +
   theme(legend.position=c(0.8,0.8))
-SxE_shoot_GH <- plot_sel_win[[1]][[2]] + ggtitle("Greenhouse")
-SxE_shoot_p1 <- plot_sel_win[[2]][[2]] + ggtitle("Plot 1")
-SxE_shoot_p2 <- plot_sel_win[[3]][[2]] + ggtitle("Plot 2")
-SxE_shoot_p3 <- plot_sel_win[[4]][[2]] + ggtitle("Plot 3")
+
+SxE_shoot_GH <- plot_sel_win[[1]][[2]] + ggtitle("Greenhouse") +
+  geom_smooth(method=lm, se=TRUE, colour="black", formula = y ~ x, linetype = 1)
+SxE_shoot_p1 <- plot_sel_win[[2]][[2]] + ggtitle("Plot 1") + 
+  geom_smooth(method=lm, se=FALSE, colour="black", formula = y ~ x, linetype = 2)
+SxE_shoot_p2 <- plot_sel_win[[3]][[2]] + ggtitle("Plot 2") +
+  geom_smooth(method=lm, se=TRUE, colour="black", formula = y ~ x, linetype = 1) +
+  geom_smooth(method=lm, se=FALSE, color = "black", formula = y ~ x + I(x^2), linetype = 2)
+SxE_shoot_p3 <- plot_sel_win[[4]][[2]] + ggtitle("Plot 3") +
+  geom_smooth(method=lm, se=TRUE, colour="black", formula = y ~ x, linetype = 1)
 SxE_shoot_p4 <- plot_sel_win[[5]][[2]] + ggtitle("Plot 4")
+
+
+## put them together in cowplot
 
 (fig_base <- plot_grid(SxE_shoot_all, SxE_shoot_GH, SxE_shoot_p1, SxE_shoot_p2,
                         SxE_shoot_p3, SxE_shoot_p4,
@@ -596,10 +560,6 @@ SxE_shoot_p4 <- plot_sel_win[[5]][[2]] + ggtitle("Plot 4")
 
     ## Warning: Removed 4 rows containing non-finite values (stat_smooth).
 
-    ## Warning: Removed 4 rows containing missing values (geom_point).
-
-    ## Warning: Removed 4 rows containing missing values (geom_text).
-
     ## Warning: Removed 4 rows containing non-finite values (stat_smooth).
 
     ## Warning: Removed 4 rows containing missing values (geom_point).
@@ -607,6 +567,10 @@ SxE_shoot_p4 <- plot_sel_win[[5]][[2]] + ggtitle("Plot 4")
     ## Warning: Removed 4 rows containing missing values (geom_text).
 
     ## Warning: Removed 4 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 4 rows containing missing values (geom_point).
+
+    ## Warning: Removed 4 rows containing missing values (geom_text).
 
     ## Warning: Removed 4 rows containing missing values (geom_point).
 
