@@ -1,7 +1,7 @@
 data\_analyses\_GxE
 ================
 Rebecca Batstone
-2019-08-28
+2019-09-03
 
 Load packages
 -------------
@@ -25,16 +25,15 @@ Spreadsheets
 
 ``` r
 # created using "data_setup.Rmd"
-date <- format(Sys.Date())
-load(paste0("combined_field_GH_", date, ".Rdata"))
-load("./dataset_cleaned/shoot_cleaned.Rdata")
-load("./dataset_cleaned/survival_cleaned.Rdata")
-load("./dataset_cleaned/leaves_cleaned.Rdata")
-load("./dataset_cleaned/nods_cleaned.Rdata")
-load("./dataset_cleaned/choice_cleaned.Rdata")
-load("./dataset_cleaned/red_nod_cleaned.Rdata")
-load("./dataset_cleaned/flowers_cleaned.Rdata")
-load("./dataset_cleaned/fruits_cleaned.Rdata")
+load("./raw_data/combined_field_GH_28Aug2019.Rdata")
+load("./raw_data/dataset_cleaned/shoot_cleaned.Rdata")
+load("./raw_data/dataset_cleaned/survival_cleaned.Rdata")
+load("./raw_data/dataset_cleaned/leaves_cleaned.Rdata")
+load("./raw_data/dataset_cleaned/nods_cleaned.Rdata")
+load("./raw_data/dataset_cleaned/choice_cleaned.Rdata")
+load("./raw_data/dataset_cleaned/red_nod_cleaned.Rdata")
+load("./raw_data/dataset_cleaned/flowers_cleaned.Rdata")
+load("./raw_data/dataset_cleaned/fruits_cleaned.Rdata")
 ```
 
 Set to effects contrasts
@@ -1044,9 +1043,6 @@ fit.nbinom$aic
 ``` r
 ## nbinom, poisson, norm (best to worst)
 
-# calculate flower success
-flower_cc$flo_succ <- as.numeric(flower_cc$flo > 0) 
-
 # model
 glm7 <- glm(flo_succ ~ env * line,
              family= binomial,
@@ -1256,9 +1252,6 @@ fit.nbinom$aic
 
 ``` r
 ## nbinom, norm, poisson  (best to worst)
-
-# calculate fruit success
-fruit_cc$fru_succ <- as.numeric(fruit_cc$fru > 0) 
 
 # models
 lm8_nz <- lm(sqrt(fru) ~ env * line, 
@@ -1503,6 +1496,6 @@ binary_comb <- rbind(firth_anova_env_surv, firth_anova_line_surv, firth_anova_in
                      firth_anova_env_flo, firth_anova_line_flo, firth_anova_int_flo, 
                      firth_anova_env_fru, firth_anova_line_fru, firth_anova_int_fru)
 
-write.csv(non_binary_comb, "GxE_non-binary.csv")
-write.csv(binary_comb, "GxE_binary.csv")
+write.csv(non_binary_comb, "./GxE_analyses_outputs/GxE_non-binary.csv")
+write.csv(binary_comb, "./GxE_analyses_outputs/GxE_binary.csv")
 ```
