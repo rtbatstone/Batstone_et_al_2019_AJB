@@ -1,7 +1,7 @@
 data\_analyses\_raw\_means
 ================
 Rebecca Batstone
-2019-09-01
+2019-09-03
 
 Load packages
 -------------
@@ -404,7 +404,7 @@ plot_label3 <- function(variable,value){
   geom_line(position = position_dodge(0.3)) +
   annotate("text", x = 3, y = 0.7, label =  'bold("Environment***")', parse = TRUE) + 
   annotate("text", x = 3, y = 0.67, label =  'bold("Line*")', parse = TRUE) +  
-  annotate("text", x = 3, y = 0.64, label =  expression("Environment x Line"^'NS')) +   
+  annotate("text", x = 3, y = 0.64, label =  "Environment x Line") +   
   theme_bw() +
   xlab(NULL) + 
   ylab("Flower success (%)") +
@@ -434,7 +434,7 @@ fig_base1 <- plot_grid(plot.sum_surv, plot.sum_shoot, plot.sum_leaf, plot.sum_no
 
 fig1 <- add_sub(fig_base1, "Environment", size = 20, hjust = 0.5)
 
-save_plot("./figures/rxn_norms.pdf", fig1,
+save_plot("./figures/Fig2_rxn_norms.pdf", fig1,
           ncol = 2, # we're saving a grid plot of 2 columns
           nrow = 3, # and 3 rows
           # each individual subplot should have an aspect ratio of 1.3
@@ -491,7 +491,7 @@ bg_colors_upper1 <- bg_colors_upper1[upper.tri(bg_colors_upper1, diag=T)]
 
 ### and the plot
 
-pdf('./figures/corrplot_over_env.pdf', width = 10, height = 10, pointsize = 14)
+pdf('./figures/Fig4_corrplot_over_env.pdf', width = 10, height = 10, pointsize = 14)
 
 par(xpd = TRUE)
 
@@ -599,7 +599,7 @@ diag(bg_colors_upper2) <- "white" ## if the diagonal values shall be white
 # select colors from lower/upper2 part of matrix:
 bg_colors_upper2 <- bg_colors_upper2[upper.tri(bg_colors_upper2, diag=T)]
 
-pdf('./figures/corrplot_p-adjust_all.pdf', width = 16, height = 16, pointsize = 15)
+pdf('./figures/Fig5_corrplot_p-adjust_all.pdf', width = 16, height = 16, pointsize = 15)
 
 cex.before <- par("cex")
 par(cex = 0.7)
@@ -627,12 +627,12 @@ dev.off()
 Resulting corrplots
 -------------------
 
-<img src="./figures/corrplot_over_env.pdf" alt="Correlation plot of traits averaged across environments" width="1\linewidth" />
+<img src="./figures/Fig4_corrplot_over_env.pdf" alt="Correlation plot of traits averaged across environments" width="1\linewidth" />
 <p class="caption">
 Correlation plot of traits averaged across environments
 </p>
 
-<img src="./figures/corrplot_p-adjust_all.pdf" alt="Correlation plot of traits averaged within each environments" width="1\linewidth" />
+<img src="./figures/Fig5_corrplot_p-adjust_all.pdf" alt="Correlation plot of traits averaged within each environments" width="1\linewidth" />
 <p class="caption">
 Correlation plot of traits averaged within each environments
 </p>

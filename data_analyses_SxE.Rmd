@@ -129,28 +129,28 @@ SxE_out4 <- lapply(var.list, SxE_function, df = GE_comb_raw_sel4)
 ### Combine results
 
 ```{r combine}
-SxE_lin_aov1 <- rbind(SxE_out[[1]][[3]], SxE_out[[2]][[3]], SxE_out[[3]][[3]], 
+SxE_lin_aov1 <- rbind(SxE_out[[1]][[3]], SxE_out[[2]][[3]], SxE_out[[3]][[3]], ## global all
                      SxE_out[[4]][[3]],SxE_out[[5]][[3]],SxE_out[[6]][[3]])
 
-SxE_quad_aov1 <- rbind(SxE_out[[1]][[4]], SxE_out[[2]][[4]], SxE_out[[3]][[4]], 
+SxE_quad_aov1 <- rbind(SxE_out[[1]][[4]], SxE_out[[2]][[4]], SxE_out[[3]][[4]], ## global all
                      SxE_out[[4]][[4]],SxE_out[[5]][[4]], SxE_out[[6]][[4]])
 
-SxE_lin_aov1a <- rbind(SxE_out3[[1]][[3]], SxE_out3[[2]][[3]], SxE_out3[[3]][[3]], 
+SxE_lin_aov1a <- rbind(SxE_out3[[1]][[3]], SxE_out3[[2]][[3]], SxE_out3[[3]][[3]], ## abs fit, global nod
                      SxE_out3[[4]][[3]],SxE_out3[[5]][[3]], SxE_out3[[6]][[3]])
 
-SxE_quad_aov1a <- rbind(SxE_out3[[1]][[4]], SxE_out3[[2]][[4]], SxE_out3[[3]][[4]], 
+SxE_quad_aov1a <- rbind(SxE_out3[[1]][[4]], SxE_out3[[2]][[4]], SxE_out3[[3]][[4]], ## abs fit, global nod
                      SxE_out3[[4]][[4]],SxE_out3[[5]][[4]], SxE_out3[[6]][[4]])
 
-SxE_lin_aov2 <- rbind(SxE_out2[[1]][[3]], SxE_out2[[2]][[3]], SxE_out2[[3]][[3]], 
+SxE_lin_aov2 <- rbind(SxE_out2[[1]][[3]], SxE_out2[[2]][[3]], SxE_out2[[3]][[3]], ## within all
                      SxE_out2[[4]][[3]],SxE_out2[[5]][[3]], SxE_out2[[6]][[3]])
 
-SxE_quad_aov2 <- rbind(SxE_out2[[1]][[4]], SxE_out2[[2]][[4]], SxE_out2[[3]][[4]], 
+SxE_quad_aov2 <- rbind(SxE_out2[[1]][[4]], SxE_out2[[2]][[4]], SxE_out2[[3]][[4]], ## within all
                      SxE_out2[[4]][[4]],SxE_out2[[5]][[4]], SxE_out2[[6]][[4]])
 
-SxE_lin_aov3 <- rbind(SxE_out4[[1]][[3]], SxE_out4[[2]][[3]], SxE_out4[[3]][[3]], 
+SxE_lin_aov3 <- rbind(SxE_out4[[1]][[3]], SxE_out4[[2]][[3]], SxE_out4[[3]][[3]], ## within fit, global nod
                      SxE_out4[[4]][[3]],SxE_out4[[5]][[3]], SxE_out4[[6]][[3]])
 
-SxE_quad_aov3 <- rbind(SxE_out4[[1]][[4]], SxE_out4[[2]][[4]], SxE_out4[[3]][[4]], 
+SxE_quad_aov3 <- rbind(SxE_out4[[1]][[4]], SxE_out4[[2]][[4]], SxE_out4[[3]][[4]], ## within fit, global nod
                      SxE_out4[[4]][[4]],SxE_out4[[5]][[4]], SxE_out4[[6]][[4]])
 
 SxE_lin_comp <- cbind(SxE_lin_aov1, SxE_lin_aov1a,
@@ -378,7 +378,7 @@ fig_base <- plot_grid(abs_surv, glob_all_surv, win_all_surv, win_fit_surv,
           align = "hv",
           labels = NULL)
 
-save_plot("./SxE_analyses_outputs/SxE_all.pdf", fig_base,
+save_plot("./figures/FigS1_SxE_all.pdf", fig_base,
           ncol = 4, # we're saving a grid plot of 2 columns
           nrow = 3, # and 3 rows
           # each individual subplot should have an aspect ratio of 1.3
@@ -460,7 +460,7 @@ fig.yaxis <- ggdraw() + draw_label("Relativized shoot biomass", size = 20, angle
 # put them together
 fig <- plot_grid(fig.yaxis, fig.xaxis, ncol=2, rel_widths=c(0.03, 1)) 
 
-save_plot("./figures/SxE_shoot.pdf", fig,
+save_plot("./figures/Fig3_SxE_shoot.pdf", fig,
           ncol = 2, ## we're saving a grid plot of 2 columns
           nrow = 3, ## and 3 rows
           # each individual subplot should have an aspect ratio of 1.3

@@ -1,0 +1,20 @@
+,"Globally-relativized fitness, globally-standardized nodules",,,"Absolute fitness, globally-standardized nodules",,,"Locally-relativized fitness, locally-relativized nodules",,,"Locally relativized fitness, globally-standardized nodules",,
+,Sum of squares,Df,F-value,Sum of squares,Df,F-value,Sum of squares,Df,F-value,Sum of squares,Df,F-value
+,Survival (%),,,,,,,,,,,
+(Intercept),23.396,1,508.434***,13.160,1,508.434***,141.324,1,2842.803***,23.131,1,465.299***
+sNods,0.035,1,0.758NS,0.020,1,0.758NS,0.164,1,3.296MS,0.029,1,0.586NS
+Environment,1.181,4,6.415***,0.664,4,6.415***,0.049,4,0.245NS,0.282,4,1.418NS
+sNods:Environment,0.102,4,0.554NS,0.057,4,0.554NS,0.385,4,1.937NS,0.127,4,0.640NS
+Residuals,5.982,130,NA,3.365,130,NA,6.463,130,NA,6.463,130,NA
+,Shoot biomass (g),,,,,,,,,,,
+(Intercept),43.979,1,69.863***,1745755.823,1,69.863***,129.558,1,242.622***,45.317,1,84.865***
+sNods,7.929,1,12.596***,314746.280,1,12.596***,13.803,1,25.849***,11.267,1,21.099***
+Environment,43.779,4,17.386***,1737816.488,4,17.386***,0.191,4,0.090NS,11.250,4,5.267***
+sNods:Environment,8.171,4,3.245*,324327.665,4,3.245*,2.602,4,1.218NS,6.891,4,3.226*
+Residuals,75.541,120,NA,2998605.411,120,NA,64.079,120,NA,64.079,120,NA
+,Leaves (no.),,,,,,,,,,,
+(Intercept),49.238,1,158.572***,97495.778,1,158.572***,140.000,1,354.011***,48.275,1,122.070***
+sNods,8.686,1,27.972***,17197.984,1,27.972***,9.171,1,23.189***,8.473,1,21.424***
+Environment,31.847,4,25.640***,63058.807,4,25.640***,0.000,4,0.000NS,5.492,4,3.472**
+sNods:Environment,10.880,4,8.759***,21542.663,4,8.759***,1.077,4,0.681NS,6.400,4,4.046**
+Residuals,40.366,130,NA,79928.860,130,NA,51.411,130,NA,51.411,130,NA

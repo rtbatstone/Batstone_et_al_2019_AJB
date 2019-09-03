@@ -1,7 +1,7 @@
 seq\_map\_data
 ================
 Rebecca Batstone
-2019-09-01
+2019-09-03
 
 Load packages
 -------------
@@ -83,7 +83,7 @@ fig <- plot_grid(plot_maps, plot_16S_seq,
           nrow = 1,
           align = "h")
 
-save_plot("./figures/maps_seq.pdf", fig,
+save_plot("./figures/Fig1_maps_seq.pdf", fig,
           ncol = 2, # we're saving a grid plot of 4 columns
           nrow = 1, # and 2 rows
           # each individual subplot should have an aspect ratio of 1.3

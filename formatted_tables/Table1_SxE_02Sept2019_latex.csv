@@ -1,0 +1,33 @@
+Response variable,Term,Sum of squares,Df,F-value
+Survival,(Intercept),23.396,1,508.434***
+,sNods,0.035,1,0.758NS
+,Environment,1.181,4,6.415***
+,sNods:Environment,0.102,4,0.554NS
+,Residuals,5.982,130,NA
+Shoot biomass,(Intercept),13.565,1,23.389***
+,sNods,0.466,1,0.803NS
+,sNods2,0.170,1,0.293NS
+,Environment,16.433,4,7.084***
+,sNods:Environment,8.437,4,3.637**
+,sNods2:Environment,8.843,4,3.812**
+,Residuals,66.696,115,NA
+Leaves,(Intercept),49.238,1,158.572***
+,sNods,8.686,1,27.972***
+,Environment,31.847,4,25.640***
+,sNods:Environment,10.880,4,8.759***
+,Residuals,40.366,130,NA
+Flower success,(Intercept),23.761,1,11.730***
+,sNods,0.856,1,0.423NS
+,Environment,16.757,2,4.136*
+,sNods:Environment,0.985,2,0.243NS
+,Residuals,158.000,78,NA
+Fruits,(Intercept),19.555,1,5.259*
+,sNods,0.009,1,0.002NS
+,Environment,10.783,2,1.450NS
+,sNods:Environment,3.030,2,0.407NS
+,Residuals,290.055,78,NA
+Fruit success,(Intercept),30.195,1,20.748***
+,sNods,2.969,1,2.040NS
+,Environment,9.122,2,3.134*
+,sNods:Environment,2.129,2,0.732NS
+,Residuals,113.515,78,NA
