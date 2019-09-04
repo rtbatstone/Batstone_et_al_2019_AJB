@@ -1,7 +1,7 @@
 data\_analyses\_GxE
 ================
 Rebecca Batstone
-2019-09-03
+2019-09-04
 
 Load packages
 -------------
@@ -50,9 +50,8 @@ GLMs (line as fixed effect)
 
 Summary:
 
--   both models perform well, residual diagnostics hold up
--   lm type III SS can be calculated, but interaction is not significant.
--   glm type III SS cannot be calculated using Anova function, but joint\_tests indicates all terms sig.
+-   residual diagnostics hold up
+-   glm type III SS calculated using joint\_tests, indicates all terms sig.
 
 ``` r
 # prob dist
@@ -120,28 +119,11 @@ fit.lnorm$aic
 ## lnorm, gamma, norm (best to worst)
 
 # model
-lm1 <- lm(log(shoot) ~ env * line,
-            data = shoot_cc)
-
 glm1 <- glm(shoot ~ env * line,
             family = Gamma(link="log"),
             data = shoot_cc)
 
 # residual diagnostics
-plot(lm1) ## OK
-```
-
-    ## Warning: not plotting observations with leverage one:
-    ##   689, 698, 723, 726, 736, 737, 758
-
-![](data_analyses_GxE_files/figure-markdown_github/shoot-6.png)![](data_analyses_GxE_files/figure-markdown_github/shoot-7.png)
-
-    ## Warning: not plotting observations with leverage one:
-    ##   689, 698, 723, 726, 736, 737, 758
-
-![](data_analyses_GxE_files/figure-markdown_github/shoot-8.png)![](data_analyses_GxE_files/figure-markdown_github/shoot-9.png)
-
-``` r
 simuOut_glm1 <- simulateResiduals(fittedModel = glm1, n = 1000)
 ```
 
@@ -151,13 +133,13 @@ simuOut_glm1 <- simulateResiduals(fittedModel = glm1, n = 1000)
 plot(simuOut_glm1) ## OK
 ```
 
-![](data_analyses_GxE_files/figure-markdown_github/shoot-10.png)
+![](data_analyses_GxE_files/figure-markdown_github/shoot-6.png)
 
 ``` r
 testDispersion(simuOut_glm1) ## NS
 ```
 
-![](data_analyses_GxE_files/figure-markdown_github/shoot-11.png)
+![](data_analyses_GxE_files/figure-markdown_github/shoot-7.png)
 
     ## 
     ##  DHARMa nonparametric dispersion test via sd of residuals fitted
@@ -169,44 +151,6 @@ testDispersion(simuOut_glm1) ## NS
 
 ``` r
 # model summary
-(ANODEV_lm_shoot <- Anova(lm1, type = 2)) ## NS interaction, type 2 used
-```
-
-    ## Anova Table (Type II tests)
-    ## 
-    ## Response: log(shoot)
-    ##            Sum Sq  Df F value  Pr(>F)    
-    ## env        570.48   4 64.1378 < 2e-16 ***
-    ## line        99.15  26  1.7149 0.01531 *  
-    ## env:line   266.57 104  1.1527 0.15688    
-    ## Residuals 1529.88 688                    
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-``` r
-(joint_tests(lm1)) # matches Anova results
-```
-
-    ##  model term df1 df2 F.ratio p.value
-    ##  env          4 688  54.457 <.0001 
-    ##  line        26 688   1.348 0.1164 
-    ##  env:line   104 688   1.153 0.1569
-
-``` r
-(ANODEV_shoot <- Anova(glm1, type = 2)) ## error if type 3, type 2 used
-```
-
-    ## Analysis of Deviance Table (Type II tests)
-    ## 
-    ## Response: shoot
-    ##          LR Chisq  Df Pr(>Chisq)    
-    ## env        429.91   4  < 2.2e-16 ***
-    ## line        55.65  26  0.0006269 ***
-    ## env:line   169.50 104  5.257e-05 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-``` r
 (jt_shoot <- joint_tests(glm1)) ## all terms sig. 
 ```
 
@@ -333,15 +277,6 @@ testDispersion(simuOut_glm2) ## NS
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-(joint_tests(glm2)) ## does not match Anova function results
-```
-
-    ##  model term df1 df2 F.ratio p.value
-    ##  env          4 Inf   0.000 1.0000 
-    ##  line        29 Inf   0.244 1.0000 
-    ##  env:line   116 Inf   0.674 0.9973
-
-``` r
 # Check separation issue
 (glm2_check <- glm(survival ~ env * line,
              family = binomial,
@@ -452,9 +387,8 @@ glm_firth4_surv <- logistf(survival ~ line, data = survival_cc)
 
 Summary:
 
--   glm residual diagnostics hold up, but not for lm.
--   lm type III SS can be calculated, but interaction is not significant.
--   glm type III SS cannot be calculated using Anova function, but joint\_tests indicates all terms sig.
+-   residual diagnostics hold up
+-   glm type III SS calculated using joint\_tests, indicates all terms sig.
 
 ``` r
 # prob dist
@@ -522,38 +456,21 @@ fit.nbinom$aic
 ## nbinom, norm, poiss (best to worst)
 
 # model
-lm3 <- lm(sqrt(leaf) ~ env * line, 
-            data = leaf_cc)
-
 glm3 <- glm.nb(leaf ~ env * line, 
             data = leaf_cc)
 
 # residual diagnostics
-plot(lm3) ## not great
-```
-
-    ## Warning: not plotting observations with leverage one:
-    ##   713, 716, 725, 752, 765, 766, 822
-
-![](data_analyses_GxE_files/figure-markdown_github/leaf-6.png)![](data_analyses_GxE_files/figure-markdown_github/leaf-7.png)
-
-    ## Warning: not plotting observations with leverage one:
-    ##   713, 716, 725, 752, 765, 766, 822
-
-![](data_analyses_GxE_files/figure-markdown_github/leaf-8.png)![](data_analyses_GxE_files/figure-markdown_github/leaf-9.png)
-
-``` r
 simOut_glm3 <- simulateResiduals(fittedModel = glm3, n = 1000)
 plot(simOut_glm3) ## OK
 ```
 
-![](data_analyses_GxE_files/figure-markdown_github/leaf-10.png)
+![](data_analyses_GxE_files/figure-markdown_github/leaf-6.png)
 
 ``` r
 testDispersion(simOut_glm3) ## NS
 ```
 
-![](data_analyses_GxE_files/figure-markdown_github/leaf-11.png)
+![](data_analyses_GxE_files/figure-markdown_github/leaf-7.png)
 
     ## 
     ##  DHARMa nonparametric dispersion test via sd of residuals fitted
@@ -565,44 +482,6 @@ testDispersion(simOut_glm3) ## NS
 
 ``` r
 # model summary
-(ANODEV_lm_leaf <- Anova(lm3, type = 2)) ## NS interaction, type 2 used
-```
-
-    ## Anova Table (Type II tests)
-    ## 
-    ## Response: sqrt(leaf)
-    ##           Sum Sq  Df F value Pr(>F)    
-    ## env       4141.5   4 93.3810 <2e-16 ***
-    ## line       394.3  27  1.3172 0.1312    
-    ## env:line  1149.1 108  0.9596 0.5966    
-    ## Residuals 7927.6 715                   
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-``` r
-(joint_tests(lm3)) # matches Anova results
-```
-
-    ##  model term df1 df2 F.ratio p.value
-    ##  env          4 715  81.604 <.0001 
-    ##  line        27 715   1.169 0.2538 
-    ##  env:line   108 715   0.960 0.5966
-
-``` r
-(ANODEV_glm_leaf <- Anova(glm3, type = 2)) ## error if set to type 3, type 2 used
-```
-
-    ## Analysis of Deviance Table (Type II tests)
-    ## 
-    ## Response: leaf
-    ##          LR Chisq  Df Pr(>Chisq)    
-    ## env        773.71   4  < 2.2e-16 ***
-    ## line        71.71  27  6.368e-06 ***
-    ## env:line   175.30 108  4.519e-05 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-``` r
 (jt_leaf <- joint_tests(glm3)) ## all terms sig.
 ```
 
@@ -615,9 +494,8 @@ testDispersion(simOut_glm3) ## NS
 
 Summary:
 
--   glm residual diagnostics hold up, but not for lm.
--   lm type III SS can be calculated, but interaction is not significant.
--   glm type III SS can be calculated using Anova function and joint\_tests closely matches, but non-convergence warning issued
+-   residual diagnostics hold up
+-   glm type III SS calculated using joint\_tests, indicates all terms sig.
 
 ``` r
 # prob dist
@@ -685,38 +563,21 @@ fit.nbinom$aic
 ## nbinom, norm, poisson (best to worst)
 
 # model
-lm4 <- lm(sqrt(nod) ~ env * line,
-          data = nod_cc)
-
 glm4 <- glm.nb(nod ~ env * line, 
             data = nod_cc)
 
 # residual diagnostics
-plot(lm4) ## bad
-```
-
-    ## Warning: not plotting observations with leverage one:
-    ##   711, 714, 723, 751, 763, 764, 820
-
-![](data_analyses_GxE_files/figure-markdown_github/nod-6.png)![](data_analyses_GxE_files/figure-markdown_github/nod-7.png)
-
-    ## Warning: not plotting observations with leverage one:
-    ##   711, 714, 723, 751, 763, 764, 820
-
-![](data_analyses_GxE_files/figure-markdown_github/nod-8.png)![](data_analyses_GxE_files/figure-markdown_github/nod-9.png)
-
-``` r
 simOut_glm4 <- simulateResiduals(fittedModel = glm4, n = 1000)
 plot(simOut_glm4) ## OK
 ```
 
-![](data_analyses_GxE_files/figure-markdown_github/nod-10.png)
+![](data_analyses_GxE_files/figure-markdown_github/nod-6.png)
 
 ``` r
 testDispersion(simOut_glm4) ## NS
 ```
 
-![](data_analyses_GxE_files/figure-markdown_github/nod-11.png)
+![](data_analyses_GxE_files/figure-markdown_github/nod-7.png)
 
     ## 
     ##  DHARMa nonparametric dispersion test via sd of residuals fitted
@@ -728,49 +589,7 @@ testDispersion(simOut_glm4) ## NS
 
 ``` r
 # model summary
-(ANODEV_lm_nod <- Anova(lm4, type = 2)) ## NS interaction, type 2 used
-```
-
-    ## Anova Table (Type II tests)
-    ## 
-    ## Response: sqrt(nod)
-    ##            Sum Sq  Df F value Pr(>F)    
-    ## env        6064.1   4 80.4370 <2e-16 ***
-    ## line        694.9  27  1.3656 0.1032    
-    ## env:line   1656.8 108  0.8139 0.9095    
-    ## Residuals 13456.9 714                   
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-``` r
-(joint_tests(lm4)) ## matches Anova results
-```
-
-    ##  model term df1 df2 F.ratio p.value
-    ##  env          4 714  70.498 <.0001 
-    ##  line        27 714   0.607 0.9429 
-    ##  env:line   108 714   0.814 0.9095
-
-``` r
-(ANODEV_glm_nod <- Anova(glm4, type = 3)) ## non-convergence warning
-```
-
-    ## Warning: glm.fit: algorithm did not converge
-
-    ## Warning: glm.fit: algorithm did not converge
-
-    ## Analysis of Deviance Table (Type III tests)
-    ## 
-    ## Response: nod
-    ##          LR Chisq  Df Pr(>Chisq)    
-    ## env        485.65   4  < 2.2e-16 ***
-    ## line        59.41  27  0.0003154 ***
-    ## env:line   142.27 108  0.0151165 *  
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-``` r
-(jt_nod <- joint_tests(glm4)) ## close to Anova results
+(jt_nod <- joint_tests(glm4)) ## all terms sig.
 ```
 
     ##  model term df1 df2 F.ratio p.value
@@ -1087,15 +906,6 @@ testDispersion(simOut_glm7) ## NS
     ## env:line    37.98 54     0.9517
 
 ``` r
-(joint_tests(glm7)) ## matches Anova results
-```
-
-    ##  model term df1 df2 F.ratio p.value
-    ##  env          2 Inf   0.000 1.0000 
-    ##  line        27 Inf   0.000 1.0000 
-    ##  env:line    54 Inf   0.089 1.0000
-
-``` r
 # Check separation issue
 (glm7_check <- glm(flo_succ ~ env * line,
              family= binomial,
@@ -1184,7 +994,7 @@ glm7_firth4_flo <- logistf(flo_succ ~ line, data = subset(flower_cc, survival > 
 
 Summary:
 
--   residual diagnostics hold up on binomial data, not count data
+-   residual diagnostics hold up on binomial data, less so for count data
 
 Binomial: - type III SS can be calculated using Anova, but warning about fitted probabilities issued - checked separation in model, and uncovered Inf's - used Firth's correction to deal with separation, and detected sig. ME's of line and env, but no interaction
 
@@ -1254,9 +1064,6 @@ fit.nbinom$aic
 ## nbinom, norm, poisson  (best to worst)
 
 # models
-lm8_nz <- lm(sqrt(fru) ~ env * line, 
-              data = subset(fruit_cc, fru > 0))
-
 glm8_nz <- glm.nb(fru ~ env * line, 
               data = subset(fruit_cc, fru > 0))
 
@@ -1265,37 +1072,17 @@ glm8_succ <- glm(fru_succ ~ env * line,
               data = fruit_cc)
 
 # residual diagnostics
-plot(lm8_nz) ## OK
-```
-
-    ## Warning: not plotting observations with leverage one:
-    ##   5, 6, 7, 9, 15, 16, 17, 19, 21, 22, 30, 41, 50, 51, 55, 61, 62, 64, 66, 67, 71
-
-![](data_analyses_GxE_files/figure-markdown_github/fruit-6.png)![](data_analyses_GxE_files/figure-markdown_github/fruit-7.png)
-
-    ## Warning: not plotting observations with leverage one:
-    ##   5, 6, 7, 9, 15, 16, 17, 19, 21, 22, 30, 41, 50, 51, 55, 61, 62, 64, 66, 67, 71
-
-![](data_analyses_GxE_files/figure-markdown_github/fruit-8.png)
-
-    ## Warning in sqrt(crit * p * (1 - hh)/hh): NaNs produced
-
-    ## Warning in sqrt(crit * p * (1 - hh)/hh): NaNs produced
-
-![](data_analyses_GxE_files/figure-markdown_github/fruit-9.png)
-
-``` r
 simOut_glm8_nz <- simulateResiduals(fittedModel = glm8_nz, n = 1000)
 plot(simOut_glm8_nz) ## bad
 ```
 
-![](data_analyses_GxE_files/figure-markdown_github/fruit-10.png)
+![](data_analyses_GxE_files/figure-markdown_github/fruit-6.png)
 
 ``` r
 testDispersion(simOut_glm8_nz) ## NS
 ```
 
-![](data_analyses_GxE_files/figure-markdown_github/fruit-11.png)
+![](data_analyses_GxE_files/figure-markdown_github/fruit-7.png)
 
     ## 
     ##  DHARMa nonparametric dispersion test via sd of residuals fitted
@@ -1310,13 +1097,13 @@ simOut_glm8_succ <- simulateResiduals(fittedModel = glm8_succ, n = 1000)
 plot(simOut_glm8_succ) ## OK
 ```
 
-![](data_analyses_GxE_files/figure-markdown_github/fruit-12.png)
+![](data_analyses_GxE_files/figure-markdown_github/fruit-8.png)
 
 ``` r
 testDispersion(simOut_glm8_succ) ## NS
 ```
 
-![](data_analyses_GxE_files/figure-markdown_github/fruit-13.png)
+![](data_analyses_GxE_files/figure-markdown_github/fruit-9.png)
 
     ## 
     ##  DHARMa nonparametric dispersion test via sd of residuals fitted
@@ -1328,34 +1115,6 @@ testDispersion(simOut_glm8_succ) ## NS
 
 ``` r
 # model summaries
-(ANODEV_lm_fru_nz <- Anova(lm8_nz, type = 2)) ## singular, cannot assess type 3, type 2 used
-```
-
-    ## Note: model has aliased coefficients
-    ##       sums of squares computed by model comparison
-
-    ## Anova Table (Type II tests)
-    ## 
-    ## Response: sqrt(fru)
-    ##            Sum Sq Df F value  Pr(>F)  
-    ## env        20.533  2  4.2098 0.02353 *
-    ## line      122.308 24  2.0897 0.02491 *
-    ## env:line   42.365 16  1.0857 0.40523  
-    ## Residuals  80.479 33                  
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-``` r
-(joint_tests(lm8_nz)) ## matches Anova type III results (non-estimability)
-```
-
-    ##  model term df1 df2 F.ratio p.value note
-    ##  line         1  33   0.029 0.8648     e
-    ##  env:line    16  33   1.086 0.4052     e
-    ## 
-    ## e: df1 reduced due to non-estimability
-
-``` r
 (ANODEV_glm_fru_nz <- Anova(glm8_nz, type = 2)) ## singular, cannot assess type 3, type 2 used
 ```
 
@@ -1370,16 +1129,6 @@ testDispersion(simOut_glm8_succ) ## NS
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-(jt_fruit <- joint_tests(glm8_nz)) ## matches Anova type III results (non-estimability)
-```
-
-    ##  model term df1 df2 F.ratio p.value note
-    ##  line         1 Inf   0.180 0.6716     e
-    ##  env:line    16 Inf   2.452 0.0010     e
-    ## 
-    ## e: df1 reduced due to non-estimability
-
-``` r
 (ANODEV_fru_succ <- Anova(glm8_succ, type = 3)) ## no terms sig., fitted probability warning issued
 ```
 
@@ -1392,15 +1141,6 @@ testDispersion(simOut_glm8_succ) ## NS
     ## env         0.000  2     1.0000
     ## line       29.829 27     0.3219
     ## env:line   55.603 54     0.4142
-
-``` r
-(joint_tests(glm8_succ)) ## close to Anova results
-```
-
-    ##  model term df1 df2 F.ratio p.value
-    ##  env          2 Inf   0.000 0.9999 
-    ##  line        27 Inf   0.000 1.0000 
-    ##  env:line    54 Inf   0.198 1.0000
 
 ``` r
 # Check separation issue
@@ -1491,11 +1231,11 @@ combine dfs
 -----------
 
 ``` r
-non_binary_comb <- rbind(jt_shoot, jt_leaf, jt_nod, jt_fruit[,-c(6)])
+non_binary_jt_comb <- rbind(jt_shoot, jt_leaf, jt_nod)
 binary_comb <- rbind(firth_anova_env_surv, firth_anova_line_surv, firth_anova_int_surv, 
                      firth_anova_env_flo, firth_anova_line_flo, firth_anova_int_flo, 
                      firth_anova_env_fru, firth_anova_line_fru, firth_anova_int_fru)
 
-write.csv(non_binary_comb, "./GxE_analyses_outputs/GxE_non-binary.csv")
+write.csv(non_binary_jt_comb, "./GxE_analyses_outputs/GxE_non-binary.csv")
 write.csv(binary_comb, "./GxE_analyses_outputs/GxE_binary.csv")
 ```

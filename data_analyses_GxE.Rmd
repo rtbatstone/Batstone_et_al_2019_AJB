@@ -51,9 +51,8 @@ options(contrasts = rep ("contr.sum", 2))
 
 Summary:
 
-- both models perform well, residual diagnostics hold up
-- lm type III SS can be calculated, but interaction is not significant.
-- glm type III SS cannot be calculated using Anova function, but joint_tests indicates all terms sig. 
+- residual diagnostics hold up
+- glm type III SS calculated using joint_tests, indicates all terms sig. 
 
 ```{r shoot}
 # prob dist
@@ -73,24 +72,16 @@ fit.lnorm$aic
 ## lnorm, gamma, norm (best to worst)
 
 # model
-lm1 <- lm(log(shoot) ~ env * line,
-            data = shoot_cc)
-
 glm1 <- glm(shoot ~ env * line,
             family = Gamma(link="log"),
             data = shoot_cc)
 
 # residual diagnostics
-plot(lm1) ## OK
-
 simuOut_glm1 <- simulateResiduals(fittedModel = glm1, n = 1000)
 plot(simuOut_glm1) ## OK
 testDispersion(simuOut_glm1) ## NS
 
 # model summary
-(ANODEV_lm_shoot <- Anova(lm1, type = 2)) ## NS interaction, type 2 used
-(joint_tests(lm1)) # matches Anova results
-(ANODEV_shoot <- Anova(glm1, type = 2)) ## error if type 3, type 2 used
 (jt_shoot <- joint_tests(glm1)) ## all terms sig. 
 ```
 
@@ -132,7 +123,6 @@ testDispersion(simuOut_glm2) ## NS
 
 # model summary
 (ANODEV_survival <- Anova(glm2, type = 3)) ## interaction sig., fitted probability warning issued
-(joint_tests(glm2)) ## does not match Anova function results
 
 # Check separation issue
 (glm2_check <- glm(survival ~ env * line,
@@ -160,9 +150,8 @@ glm_firth4_surv <- logistf(survival ~ line, data = survival_cc)
 
 Summary:
 
-- glm residual diagnostics hold up, but not for lm.
-- lm type III SS can be calculated, but interaction is not significant.
-- glm type III SS cannot be calculated using Anova function, but joint_tests indicates all terms sig. 
+- residual diagnostics hold up
+- glm type III SS calculated using joint_tests, indicates all terms sig. 
 
 ```{r leaf}
 # prob dist
@@ -182,23 +171,15 @@ fit.nbinom$aic
 ## nbinom, norm, poiss (best to worst)
 
 # model
-lm3 <- lm(sqrt(leaf) ~ env * line, 
-            data = leaf_cc)
-
 glm3 <- glm.nb(leaf ~ env * line, 
             data = leaf_cc)
 
 # residual diagnostics
-plot(lm3) ## not great
-
 simOut_glm3 <- simulateResiduals(fittedModel = glm3, n = 1000)
 plot(simOut_glm3) ## OK
 testDispersion(simOut_glm3) ## NS
 
 # model summary
-(ANODEV_lm_leaf <- Anova(lm3, type = 2)) ## NS interaction, type 2 used
-(joint_tests(lm3)) # matches Anova results
-(ANODEV_glm_leaf <- Anova(glm3, type = 2)) ## error if set to type 3, type 2 used
 (jt_leaf <- joint_tests(glm3)) ## all terms sig.
 ```
 
@@ -206,10 +187,8 @@ testDispersion(simOut_glm3) ## NS
 
 Summary:
 
-- glm residual diagnostics hold up, but not for lm.
-- lm type III SS can be calculated, but interaction is not significant.
-- glm type III SS can be calculated using Anova function and joint_tests closely matches, 
-  but non-convergence warning issued
+- residual diagnostics hold up
+- glm type III SS calculated using joint_tests, indicates all terms sig.
 
 ```{r nod}
 # prob dist
@@ -229,24 +208,16 @@ fit.nbinom$aic
 ## nbinom, norm, poisson (best to worst)
 
 # model
-lm4 <- lm(sqrt(nod) ~ env * line,
-          data = nod_cc)
-
 glm4 <- glm.nb(nod ~ env * line, 
             data = nod_cc)
 
 # residual diagnostics
-plot(lm4) ## bad
-
 simOut_glm4 <- simulateResiduals(fittedModel = glm4, n = 1000)
 plot(simOut_glm4) ## OK
 testDispersion(simOut_glm4) ## NS
 
 # model summary
-(ANODEV_lm_nod <- Anova(lm4, type = 2)) ## NS interaction, type 2 used
-(joint_tests(lm4)) ## matches Anova results
-(ANODEV_glm_nod <- Anova(glm4, type = 3)) ## non-convergence warning
-(jt_nod <- joint_tests(glm4)) ## close to Anova results
+(jt_nod <- joint_tests(glm4)) ## all terms sig.
 ```
 
 ### glm5: choice
@@ -354,7 +325,6 @@ testDispersion(simOut_glm7) ## NS
 
 # model summary
 (ANODEV_flo <- Anova(glm7, type = 3)) ## no terms sig., fitted probability warning issued
-(joint_tests(glm7)) ## matches Anova results
 
 # Check separation issue
 (glm7_check <- glm(flo_succ ~ env * line,
@@ -382,7 +352,7 @@ glm7_firth4_flo <- logistf(flo_succ ~ line, data = subset(flower_cc, survival > 
 
 Summary:
 
-- residual diagnostics hold up on binomial data, not count data 
+- residual diagnostics hold up on binomial data, less so for count data 
 
 Binomial:
 - type III SS can be calculated using Anova, but warning about fitted probabilities issued
@@ -407,9 +377,6 @@ fit.nbinom$aic
 ## nbinom, norm, poisson  (best to worst)
 
 # models
-lm8_nz <- lm(sqrt(fru) ~ env * line, 
-              data = subset(fruit_cc, fru > 0))
-
 glm8_nz <- glm.nb(fru ~ env * line, 
               data = subset(fruit_cc, fru > 0))
 
@@ -418,8 +385,6 @@ glm8_succ <- glm(fru_succ ~ env * line,
               data = fruit_cc)
 
 # residual diagnostics
-plot(lm8_nz) ## OK
-
 simOut_glm8_nz <- simulateResiduals(fittedModel = glm8_nz, n = 1000)
 plot(simOut_glm8_nz) ## bad
 testDispersion(simOut_glm8_nz) ## NS
@@ -429,14 +394,9 @@ plot(simOut_glm8_succ) ## OK
 testDispersion(simOut_glm8_succ) ## NS
 
 # model summaries
-(ANODEV_lm_fru_nz <- Anova(lm8_nz, type = 2)) ## singular, cannot assess type 3, type 2 used
-(joint_tests(lm8_nz)) ## matches Anova type III results (non-estimability)
-
 (ANODEV_glm_fru_nz <- Anova(glm8_nz, type = 2)) ## singular, cannot assess type 3, type 2 used
-(jt_fruit <- joint_tests(glm8_nz)) ## matches Anova type III results (non-estimability)
 
 (ANODEV_fru_succ <- Anova(glm8_succ, type = 3)) ## no terms sig., fitted probability warning issued
-(joint_tests(glm8_succ)) ## close to Anova results
 
 # Check separation issue
 (glm8_check <- glm(fru_succ ~ env * line, 
@@ -463,11 +423,11 @@ glm8_firth4_fru <- logistf(fru_succ ~ line, data = fruit_cc)
 ## combine dfs
 
 ```{r combine}
-non_binary_comb <- rbind(jt_shoot, jt_leaf, jt_nod, jt_fruit[,-c(6)])
+non_binary_jt_comb <- rbind(jt_shoot, jt_leaf, jt_nod)
 binary_comb <- rbind(firth_anova_env_surv, firth_anova_line_surv, firth_anova_int_surv, 
                      firth_anova_env_flo, firth_anova_line_flo, firth_anova_int_flo, 
                      firth_anova_env_fru, firth_anova_line_fru, firth_anova_int_fru)
 
-write.csv(non_binary_comb, "./GxE_analyses_outputs/GxE_non-binary.csv")
+write.csv(non_binary_jt_comb, "./GxE_analyses_outputs/GxE_non-binary.csv")
 write.csv(binary_comb, "./GxE_analyses_outputs/GxE_binary.csv")
 ```
